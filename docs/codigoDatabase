@@ -1,0 +1,163 @@
+CREATE TABLE roles (
+  id_rol INT AUTO_INCREMENT PRIMARY KEY,
+  nom_rol VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE usuarios (
+  doc INT AUTO_INCREMENT PRIMARY KEY,
+  nom_usu VARCHAR(255) UNIQUE NOT NULL,
+  contra VARCHAR(255) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  id_avatar VARCHAR(255) NOT NULL,
+  id_rol INT NOT NULL,
+  id_estado INT NOT NULL,
+  ultima_sesion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  create_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_rol) REFERENCES roles(id_rol),
+  FOREIGN KEY (id_estado) REFERENCES estados(id_estado),
+  FOREIGN KEY (id_avatar) REFERENCES avatar(id_avatar)
+);
+
+CREATE TABLE usuarios_puntos (
+  id_puntos INT AUTO_INCREMENT PRIMARY KEY,
+  id_doc INT NOT NULL,
+  puntos INT NOT NULL,
+  FOREIGN KEY (id_doc) REFERENCES usuarios(doc)
+);
+
+CREATE TABLE avatar (
+  id_avatar INT AUTO_INCREMENT PRIMARY KEY,
+  nom_avatar VARCHAR(255) NOT NULL,
+  img VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE niveles (
+  id_nivel INT AUTO_INCREMENT PRIMARY KEY,
+  nom_nivel VARCHAR(255) NOT NULL,
+  puntos_necesarios INT NOT NULL,
+  img VARCHAR(255)
+);
+
+CREATE TABLE mundos (
+  id_mundo INT AUTO_INCREMENT PRIMARY KEY,
+  nom_mundo VARCHAR(255) NOT NULL,
+  max_jugadores INT NOT NULL,
+  img VARCHAR(255)
+);
+ 
+CREATE TABLE tipos_armas (
+  id_tip_arma INT AUTO_INCREMENT PRIMARY KEY,
+  nom_tip_arma VARCHAR(255) NOT NULL,
+  dano INT NOT NULL
+);
+
+CREATE TABLE armas (
+  id_arma INT AUTO_INCREMENT PRIMARY KEY,
+  nom_arma VARCHAR(255) NOT NULL,
+  balas INT NOT NULL,
+  img VARCHAR(255),
+  id_tipo_arma INT NOT NULL,
+  FOREIGN KEY (id_tipo_arma) REFERENCES tipos_armas(id_tip_arma)
+);
+
+CREATE TABLE jugadores_armas (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  id_jugador INT NOT NULL,
+  id_arma INT NOT NULL,
+  equipada_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_jugador) REFERENCES usuarios(doc),
+  FOREIGN KEY (id_arma) REFERENCES armas(id_arma)
+);
+
+CREATE TABLE estados (
+  id_estado INT AUTO_INCREMENT PRIMARY KEY,
+  nom_estado VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE salas (
+  id_sala INT AUTO_INCREMENT PRIMARY KEY,
+  nom_sala VARCHAR(255) NOT NULL,
+  jugadores_actuales INT NOT NULL,
+  id_mundo INT NOT NULL,
+  id_nivel INT NOT NULL,
+  max_jugadores INT NOT NULL,
+  id_estado_sala INT NOT NULL,
+  creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  duracion_segundos INT NOT NULL,
+  id_ganador INT,
+  FOREIGN KEY (id_mundo) REFERENCES mundos(id_mundo),
+  FOREIGN KEY (id_nivel) REFERENCES niveles(id_nivel),
+  FOREIGN KEY (id_estado_sala) REFERENCES estados(id_estado),
+  FOREIGN KEY (id_ganador) REFERENCES usuarios(doc)
+);
+
+CREATE TABLE jugadores_salas (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  id_jugador INT NOT NULL,
+  id_sala INT NOT NULL,
+  hora_entrada TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  hora_salida TIMESTAMP NOT NULL DEFAULT DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 10 MINUTE),
+  id_estado_sala INT NOT NULL,
+  FOREIGN KEY (id_jugador) REFERENCES usuarios(doc),
+  FOREIGN KEY (id_sala) REFERENCES salas(id_sala),
+  FOREIGN KEY (id_estado_sala) REFERENCES estados(id_estado)
+);
+
+CREATE TABLE estadisticas_juego (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  id_jugador INT NOT NULL,
+  juegos_jugados INT NOT NULL DEFAULT 0,
+  juegos_ganados INT NOT NULL DEFAULT 0,
+  puntos_totales INT NOT NULL DEFAULT 0,
+  muertes_totales INT NOT NULL DEFAULT 0,
+  dano_total INT NOT NULL DEFAULT 0,
+  disparos_cabeza_totales INT NOT NULL DEFAULT 0,
+  ultima_partida TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_jugador) REFERENCES usuarios(doc)
+);
+
+CREATE TABLE recuperacion_contrasena (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  id_usuario INT NOT NULL,
+  token_recuperacion VARCHAR(255) UNIQUE NOT NULL,
+  token_creado_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  token_expiracion TIMESTAMP NOT NULL DEFAULT DATE_ADD(CURRENT_TIMESTAMP, INTERVAL 30 MINUTE),
+  esta_usado BOOLEAN NOT NULL DEFAULT FALSE,
+  FOREIGN KEY (id_usuario) REFERENCES usuarios(doc)
+);
+
+CREATE TABLE tipos_eventos (
+  id_tip_evento INT AUTO_INCREMENT PRIMARY KEY,
+  nom_tip_evento VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE partidas_eventos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  id_jugador INT NOT NULL,
+  id_jugador_sala INT NOT NULL,
+  id_tipo_evento INT NOT NULL,
+  puntos INT NOT NULL,
+  timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_jugador) REFERENCES usuarios(doc),
+  FOREIGN KEY (id_jugador_sala) REFERENCES jugadores_salas(id),
+  FOREIGN KEY (id_tipo_evento) REFERENCES tipos_eventos(id_tip_evento)
+);
+
+CREATE TABLE usuarios_mundos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  id_usuario INT NOT NULL,
+  id_mundo INT NOT NULL,
+  fecha TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_usuario) REFERENCES usuarios(doc),
+  FOREIGN KEY (id_mundo) REFERENCES mundos(id_mundo)
+);
+
+CREATE TABLE usuarios_niveles (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  id_usuario INT NOT NULL,
+  id_nivel INT NOT NULL,
+  fecha TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_usuario) REFERENCES usuarios(doc),
+  FOREIGN KEY (id_nivel) REFERENCES niveles(id_nivel)
+);
