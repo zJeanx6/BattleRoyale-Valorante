@@ -1,5 +1,5 @@
 <?php
-$page_title = "Sala - Jugador";
+$page_title = "Sala de Espera - Jugador";
 require_once('header.php');
 $db = new Database();
 $con = $db->conectar();
@@ -7,44 +7,150 @@ $con = $db->conectar();
 $id_usuario = $_SESSION['doc'];
 $id_sala = intval($_GET['id_sala']);
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['abandonar'])) {
-    try {
-        $con->beginTransaction();
-        $con->prepare("DELETE FROM jugadores_salas WHERE id_jugador = ? AND id_sala = ?")->execute([$id_usuario, $id_sala]);
-        $con->prepare("UPDATE salas SET jugadores_actuales = jugadores_actuales - 1 WHERE id_sala = ?")->execute([$id_sala]);
-        $con->commit();
-
-        echo '<script>alert("Has abandonado la sala."); window.location.href = "salas.php?id_mundo=' . $_GET['id_mundo'] . '";</script>';
-    } catch (Exception $e) {
-        $con->rollBack();
-        echo '<script>alert("Error en el servidor: ' . $e->getMessage() . '");</script>';
-    }
-}
-
-$sala = $con->query("SELECT nom_sala, jugadores_actuales, max_jugadores FROM salas WHERE id_sala = $id_sala")->fetch(PDO::FETCH_ASSOC);
-$jugadores = $con->query("SELECT usuarios.nom_usu FROM jugadores_salas INNER JOIN usuarios ON jugadores_salas.id_jugador = usuarios.doc WHERE jugadores_salas.id_sala = $id_sala")->fetchAll(PDO::FETCH_ASSOC);
+$sala = $con->query("SELECT nom_sala FROM salas WHERE id_sala = $id_sala")->fetch(PDO::FETCH_ASSOC);
+$jugadores = $con->query("SELECT usuarios.nom_usu, avatar.img AS avatar, jugadores_salas.listo FROM jugadores_salas INNER JOIN usuarios ON jugadores_salas.id_jugador = usuarios.doc INNER JOIN avatar ON usuarios.id_avatar = avatar.id_avatar WHERE jugadores_salas.id_sala = $id_sala")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sala</title>
+    <title>Sala de Espera</title>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <style>
+        .jugador-cajon {
+            width: 150px;
+            height: 150px;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            margin: 10px;
+            display: inline-block;
+            text-align: center;
+            vertical-align: top;
+        }
+        .jugador-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-top: 10px;
+        }
+        .jugador-nombre {
+            margin-top: 10px;
+        }
+        .listo {
+            border-color: green;
+        }
+        .no-listo {
+            border-color: red;
+        }
+        .esperando {
+            border-color: gray;
+        }
+    </style>
 </head>
 <body>
     <div class="container mt-5">
         <h1 class="text-center mb-4"><?php echo htmlspecialchars($sala['nom_sala']); ?></h1>
-        <div class="card p-4 shadow-lg bg-white">
-            <h5 class="card-title">Jugadores en la sala: <?php echo $sala['jugadores_actuales']; ?>/<?php echo $sala['max_jugadores']; ?></h5>
-            <ul class="list-group list-group-flush">
-                <?php foreach ($jugadores as $jugador): ?>
-                    <li class="list-group-item"><?php echo htmlspecialchars($jugador['nom_usu']); ?></li>
-                <?php endforeach; ?>
-            </ul>
-            <form method="POST" class="mt-3">
-                <button type="submit" name="abandonar" class="btn btn-danger">Abandonar Sala</button>
-            </form>
+        <div class="d-flex justify-content-center">
+            <div id="jugadores-list">
+                <?php for ($i = 0; $i < 5; $i++): ?>
+                    <div class="jugador-cajon <?php echo isset($jugadores[$i]) ? ($jugadores[$i]['listo'] ? 'listo' : 'no-listo') : 'esperando'; ?>" id="jugador-<?php echo $i; ?>">
+                        <?php if (isset($jugadores[$i])): ?>
+                            <img src="<?php echo htmlspecialchars($jugadores[$i]['avatar']); ?>" alt="Avatar" class="jugador-avatar">
+                            <div class="jugador-nombre"><?php echo htmlspecialchars($jugadores[$i]['nom_usu']); ?></div>
+                        <?php else: ?>
+                            <div class="jugador-nombre">Esperando...</div>
+                        <?php endif; ?>
+                    </div>
+                <?php endfor; ?>
+            </div>
         </div>
+        <div class="text-center mt-3">
+            <button id="listo-btn" class="btn btn-secondary">Listo</button>
+            <button id="abandonar" class="btn btn-danger">Abandonar Sala</button>
+        </div>
+        <div id="contador" class="mt-3 text-center"></div>
     </div>
+    <script>
+        var listo = false;
+        var intervalo;
+        var contadorEnEjecucion = false;
+
+        $('#listo-btn').click(function() {
+            listo = !listo;
+            $(this).toggleClass('btn-success btn-secondary');
+            $(this).text(listo ? 'Cancelar' : 'Listo');
+            actualizarEstadoListo();
+        });
+
+        function actualizarEstadoListo() {
+            $.ajax({
+                url: 'marcar_listo.php',
+                type: 'POST',
+                data: { id_sala: <?php echo $id_sala; ?>, id_usuario: <?php echo $id_usuario; ?>, listo: listo ? 1 : 0 },
+                success: function() {
+                    actualizarJugadores();
+                    verificarListos();
+                }
+            });
+        }
+
+        function actualizarJugadores() {
+            if (!contadorEnEjecucion) {
+                $.ajax({
+                    url: 'actualizar_jugadores.php',
+                    type: 'POST',
+                    data: { id_sala: <?php echo $id_sala; ?> },
+                    success: function(data) {
+                        $('#jugadores-list').html(data);
+                    }
+                });
+            }
+        }
+
+        function verificarListos() {
+            if (!contadorEnEjecucion) {
+                $.ajax({
+                    url: 'verificar_listos.php',
+                    type: 'POST',
+                    data: { id_sala: <?php echo $id_sala; ?> },
+                    success: function(data) {
+                        if (data === 'todos_listos') {
+                            iniciarContador();
+                        } else {
+                            clearInterval(intervalo);
+                            $('#contador').html('');
+                            contadorEnEjecucion = false;
+                        }
+                    }
+                });
+            }
+        }
+
+        function iniciarContador() {
+            contadorEnEjecucion = true;
+            var contador = 10;
+            $('#listo-btn').hide();
+            $('#abandonar').hide();
+            intervalo = setInterval(function() {
+                $('#contador').html("Iniciando en " + contador + " segundos...");
+                contador--;
+                if (contador < 0) {
+                    clearInterval(intervalo);
+                    $.ajax({
+                        url: 'iniciar_partida.php',
+                        type: 'POST',
+                        data: { id_sala: <?php echo $id_sala; ?> },
+                        success: function() {
+                            window.location.href = "campo_batalla.php?id_sala=<?php echo $id_sala; ?>";
+                        }
+                    });
+                }
+            }, 1000);
+        }
+
+        setInterval(actualizarJugadores, 5000); // Actualizar cada 5 segundos
+        setInterval(verificarListos, 5000); // Verificar listos cada 5 segundos
+    </script>
 </body>
 </html>

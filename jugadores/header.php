@@ -23,17 +23,15 @@ $page_title = isset($page_title) ? $page_title : "Sin Titulo...";
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <!-- <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center" href="<?php echo BASE_URL . '/jugadores/index.php'; ?>">
                 <img src="<?php echo BASE_URL . '/img/niveles/67c0c76017692_Gold.png'; ?>" alt="Logo" class="img-fluid" style="max-height: 60px;">
                 <span class="ms-2 fw-semibold">Valorante</span>
             </a>
-            <!-- Boton de 3 Lineas Para Responsive-->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <!-- Menu De Opciones Banner -->
             <div class="collapse navbar-collapse" id="navbarContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item"><a class="nav-link <?php echo (basename($_SERVER['PHP_SELF']) == 'index.php') ? 'active' : ''; ?>" href="<?php echo BASE_URL . '/jugadores/index.php'; ?>">Inicio</a></li>
@@ -50,4 +48,4 @@ $page_title = isset($page_title) ? $page_title : "Sin Titulo...";
             </div>
         </div>
     </nav>
-</body>
+</body> -->
