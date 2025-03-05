@@ -74,7 +74,7 @@ $avatar = $con->query("SELECT img FROM avatar WHERE id_avatar = (SELECT id_avata
         <div class="row mt-3">
             <div class="col-12 text-center">
                 <div class="dropdown">
-                    <a href="jugar.php" class="btn btn-custom">Jugar</a>
+                    <a href="jugar.php" class="btn btn-custom">JugarRR</a>
                 </div>
             </div>
         </div>
