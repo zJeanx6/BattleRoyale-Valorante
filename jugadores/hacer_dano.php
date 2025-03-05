@@ -7,12 +7,25 @@ $con = $db->conectar();
 $id_sala = intval($_POST['id_sala']);
 $id_jugador = intval($_POST['id_jugador']);
 $dano = intval($_POST['dano']);
+$id_atacante = isset($_POST['atacante']) ? intval($_POST['atacante']) : null;
 
 try {
     $con->beginTransaction();
     $jugador = $con->query("SELECT vida FROM jugadores_salas WHERE id_jugador = $id_jugador AND id_sala = $id_sala")->fetch(PDO::FETCH_ASSOC);
-    $nuevaVida = $jugador['vida'] - $dano;
+    $nuevaVida = max(0, $jugador['vida'] - $dano);
     $con->prepare("UPDATE jugadores_salas SET vida = ? WHERE id_jugador = ? AND id_sala = ?")->execute([$nuevaVida, $id_jugador, $id_sala]);
+
+    // Obtener el id_jugador_sala
+    $id_jugador_sala = $con->query("SELECT id FROM jugadores_salas WHERE id_jugador = $id_jugador AND id_sala = $id_sala")->fetch(PDO::FETCH_ASSOC)['id'];
+
+    // Registrar el evento de disparo
+    $con->prepare("INSERT INTO partidas_eventos (id_jugador, id_jugador_sala, id_tipo_evento, puntos) VALUES (?, ?, 1, ?)")->execute([$id_atacante, $id_jugador_sala, $dano]);
+
+    if ($nuevaVida <= 0) {
+        // Registrar el evento de muerte
+        $con->prepare("INSERT INTO partidas_eventos (id_jugador, id_jugador_sala, id_tipo_evento, puntos) VALUES (?, ?, 2, 100)")->execute([$id_atacante, $id_jugador_sala]);
+    }
+
     $con->commit();
     echo $nuevaVida;
 } catch (Exception $e) {
