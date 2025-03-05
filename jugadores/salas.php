@@ -1,5 +1,4 @@
 <?php
-$page_title = "Salas - Jugador";
 require_once('header.php');
 $db = new Database();
 $con = $db->conectar();

@@ -23,7 +23,7 @@ $page_title = isset($page_title) ? $page_title : "Sin Titulo...";
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
-    <!-- <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center" href="<?php echo BASE_URL . '/jugadores/index.php'; ?>">
                 <img src="<?php echo BASE_URL . '/img/niveles/67c0c76017692_Gold.png'; ?>" alt="Logo" class="img-fluid" style="max-height: 60px;">
@@ -48,4 +48,4 @@ $page_title = isset($page_title) ? $page_title : "Sin Titulo...";
             </div>
         </div>
     </nav>
-</body> -->
+</body>

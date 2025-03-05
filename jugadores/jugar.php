@@ -1,5 +1,4 @@
 <?php
-$page_title = "Jugar - Jugador";
 require_once('header.php');
 $db = new Database();
 $con = $db->conectar();

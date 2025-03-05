@@ -1,5 +1,6 @@
 <?php
-require_once('header.php');
+session_start();
+require_once('../config/db_config.php');
 $db = new Database();
 $con = $db->conectar();
 

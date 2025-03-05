@@ -1,4 +1,5 @@
 <?php 
+session_start();
 $page_title = "Inicio - Jugador";
 require_once('header.php');
 $db = new Database();

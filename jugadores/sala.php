@@ -1,6 +1,6 @@
 <?php
-$page_title = "Sala de Espera - Jugador";
-require_once('header.php');
+session_start();
+require_once('../config/db_config.php');
 $db = new Database();
 $con = $db->conectar();
 
@@ -83,6 +83,19 @@ $jugadores = $con->query("SELECT usuarios.nom_usu, avatar.img AS avatar, jugador
             actualizarEstadoListo();
         });
 
+        $('#abandonar').click(function() {
+            if (confirm("¿Estás seguro de que quieres abandonar la sala?")) {
+                $.ajax({
+                    url: 'abandonar_sala.php',
+                    type: 'POST',
+                    data: { id_sala: <?php echo $id_sala; ?>, id_usuario: <?php echo $id_usuario; ?> },
+                    success: function() {
+                        window.location.href = 'index.php';
+                    }
+                });
+            }
+        });
+
         function actualizarEstadoListo() {
             $.ajax({
                 url: 'marcar_listo.php',
@@ -151,6 +164,10 @@ $jugadores = $con->query("SELECT usuarios.nom_usu, avatar.img AS avatar, jugador
 
         setInterval(actualizarJugadores, 5000); // Actualizar cada 5 segundos
         setInterval(verificarListos, 5000); // Verificar listos cada 5 segundos
+
+        window.onbeforeunload = function() {
+            return "No puedes salir de la sala de espera en este momento.";
+        };
     </script>
 </body>
 </html>
