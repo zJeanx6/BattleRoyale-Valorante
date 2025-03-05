@@ -162,12 +162,8 @@ $jugadores = $con->query("SELECT usuarios.nom_usu, avatar.img AS avatar, jugador
             }, 1000);
         }
 
-        setInterval(actualizarJugadores, 5000); // Actualizar cada 5 segundos
-        setInterval(verificarListos, 5000); // Verificar listos cada 5 segundos
-
-        window.onbeforeunload = function() {
-            return "No puedes salir de la sala de espera en este momento.";
-        };
+        setInterval(actualizarJugadores, 1000); // Actualizar cada 5 segundos
+        setInterval(verificarListos, 1000); // Verificar listos cada 5 segundos
     </script>
 </body>
 </html>

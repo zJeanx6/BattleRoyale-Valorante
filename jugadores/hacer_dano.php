@@ -18,12 +18,19 @@ try {
     // Obtener el id_jugador_sala
     $id_jugador_sala = $con->query("SELECT id FROM jugadores_salas WHERE id_jugador = $id_jugador AND id_sala = $id_sala")->fetch(PDO::FETCH_ASSOC)['id'];
 
-    // Registrar el evento de disparo
-    $con->prepare("INSERT INTO partidas_eventos (id_jugador, id_jugador_sala, id_tipo_evento, puntos) VALUES (?, ?, 1, ?)")->execute([$id_atacante, $id_jugador_sala, $dano]);
+    if ($id_jugador_sala) {
+        // Registrar el evento de disparo
+        $con->prepare("INSERT INTO partidas_eventos (id_jugador, id_jugador_sala, id_tipo_evento, puntos) VALUES (?, ?, 1, ?)")->execute([$id_atacante, $id_jugador_sala, $dano]);
 
-    if ($nuevaVida <= 0) {
-        // Registrar el evento de muerte
-        $con->prepare("INSERT INTO partidas_eventos (id_jugador, id_jugador_sala, id_tipo_evento, puntos) VALUES (?, ?, 2, 100)")->execute([$id_atacante, $id_jugador_sala]);
+        if ($nuevaVida <= 0) {
+            // Registrar el evento de muerte (kill)
+            $con->prepare("INSERT INTO partidas_eventos (id_jugador, id_jugador_sala, id_tipo_evento, puntos) VALUES (?, ?, 2, 40)")->execute([$id_atacante, $id_jugador_sala]);
+
+            // Registrar el evento de muerte (me mataron)
+            $con->prepare("INSERT INTO partidas_eventos (id_jugador, id_jugador_sala, id_tipo_evento, puntos) VALUES (?, ?, 3, 0)")->execute([$id_jugador, $id_jugador_sala]);
+        }
+    } else {
+        throw new Exception("El id_jugador_sala no existe.");
     }
 
     $con->commit();

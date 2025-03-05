@@ -10,6 +10,9 @@ $id_usuario = $_SESSION['doc'];
 $sala = $con->query("SELECT nom_sala, duracion_segundos FROM salas WHERE id_sala = $id_sala")->fetch(PDO::FETCH_ASSOC);
 $jugadores = $con->query("SELECT usuarios.doc, usuarios.nom_usu, avatar.img AS avatar, jugadores_salas.vida FROM jugadores_salas INNER JOIN usuarios ON jugadores_salas.id_jugador = usuarios.doc INNER JOIN avatar ON usuarios.id_avatar = avatar.id_avatar WHERE jugadores_salas.id_sala = $id_sala AND usuarios.doc != $id_usuario")->fetchAll(PDO::FETCH_ASSOC);
 $armas = $con->query("SELECT armas.id_arma, armas.nom_arma, armas.img, tipos_armas.dano FROM jugadores_armas INNER JOIN armas ON jugadores_armas.id_arma = armas.id_arma INNER JOIN tipos_armas ON armas.id_tipo_arma = tipos_armas.id_tip_arma WHERE jugadores_armas.id_jugador = $id_usuario")->fetchAll(PDO::FETCH_ASSOC);
+
+// Cambiar el estado de la sala a "en juego"
+$con->prepare("UPDATE salas SET id_estado_sala = 5 WHERE id_sala = ?")->execute([$id_sala]);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -71,6 +74,24 @@ $armas = $con->query("SELECT armas.id_arma, armas.nom_arma, armas.img, tipos_arm
             left: 50%;
             transform: translate(-50%, -50%);
         }
+        .estadisticas-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        .estadisticas-modal h2 {
+            margin-bottom: 20px;
+        }
+        .estadisticas-modal p {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -78,8 +99,8 @@ $armas = $con->query("SELECT armas.id_arma, armas.nom_arma, armas.img, tipos_arm
         <h1 class="text-center mb-4"><?php echo htmlspecialchars($sala['nom_sala']); ?></h1>
         <div class="d-flex justify-content-center">
             <?php foreach ($jugadores as $jugador): ?>
-                <div class="jugador-cajon" id="jugador-<?php echo $jugador['doc']; ?>">
-                    <img src="<?php echo htmlspecialchars($jugador['avatar']); ?>" alt="<?php echo htmlspecialchars($jugador['nom_usu']); ?>" class="avatar">
+                <div class="jugador-cajon <?php echo $jugador['vida'] <= 0 ? 'jugador-muerto' : ''; ?>" id="jugador-<?php echo $jugador['doc']; ?>">
+                    <img src="<?php echo htmlspecialchars($jugador['avatar']); ?>" alt="<?php echo htmlspecialchars($jugador['nom_usu']); ?>" class="avatar" <?php echo $jugador['vida'] <= 0 ? 'style="pointer-events: none;"' : ''; ?>>
                     <div class="jugador-nombre"><?php echo htmlspecialchars($jugador['nom_usu']); ?></div>
                     <div class="jugador-vida">Vida: <span id="vida-<?php echo $jugador['doc']; ?>"><?php echo $jugador['vida']; ?></span> HP</div>
                 </div>
@@ -94,6 +115,11 @@ $armas = $con->query("SELECT armas.id_arma, armas.nom_arma, armas.img, tipos_arm
         <?php endforeach; ?>
     </div>
     <div class="contador" id="contador"></div>
+    <div class="estadisticas-modal" id="estadisticas-modal">
+        <h2>Estadísticas de la Partida</h2>
+        <div id="estadisticas-contenido"></div>
+        <button onclick="cerrarModal()">Cerrar</button>
+    </div>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script>
         var vida = <?php echo isset($jugadores[0]) ? $jugadores[0]['vida'] : 100; ?>;
@@ -110,11 +136,9 @@ $armas = $con->query("SELECT armas.id_arma, armas.nom_arma, armas.img, tipos_arm
                     vida = nuevaVida;
                     $('#vida').text(vida);
                     if (vida <= 0) {
-                        alert('Has sido eliminado.');
                         $('#hud-vida').hide();
                         $('#hud-armas').hide();
                         $('.arma').hide();
-                        registrarEvento('muerte', <?php echo $id_usuario; ?>, <?php echo $id_sala; ?>);
                     }
                 }
             });
@@ -129,8 +153,7 @@ $armas = $con->query("SELECT armas.id_arma, armas.nom_arma, armas.img, tipos_arm
                     if (nuevaVida <= 0) {
                         alert('Has matado a ' + $('#jugador-' + idJugador + ' .jugador-nombre').text());
                         $('#jugador-' + idJugador).addClass('jugador-muerto');
-                        $('#jugador-' + idJugador + ' .avatar').off('click');
-                        registrarEvento('muerte', idJugador, <?php echo $id_sala; ?>);
+                        $('#jugador-' + idJugador + ' .avatar').css('pointer-events', 'none');
                     }
                     $('#vida-' + idJugador).text(nuevaVida);
                 }
@@ -146,20 +169,59 @@ $armas = $con->query("SELECT armas.id_arma, armas.nom_arma, armas.img, tipos_arm
                     var jugadores = JSON.parse(data);
                     jugadores.forEach(function(jugador) {
                         $('#vida-' + jugador.doc).text(jugador.vida);
+                        if (jugador.vida <= 0) {
+                            $('#jugador-' + jugador.doc).addClass('jugador-muerto');
+                            $('#jugador-' + jugador.doc + ' .avatar').css('pointer-events', 'none');
+                        }
                     });
                 }
             });
         }
 
-        function registrarEvento(tipo, idJugador, idSala) {
+        function registrarEstadisticas() {
             $.ajax({
-                url: 'registrar_evento.php',
+                url: 'registrar_estadisticas.php',
                 type: 'POST',
-                data: { tipo: tipo, id_jugador: idJugador, id_sala: idSala },
+                data: { id_sala: <?php echo $id_sala; ?> },
                 success: function(response) {
-                    console.log('Evento registrado: ' + response);
+                    console.log('Estadísticas registradas: ' + response);
+                    mostrarEstadisticas();
                 }
             });
+        }
+
+        function mostrarEstadisticas() {
+            $.ajax({
+                url: 'obtener_estadisticas.php',
+                type: 'POST',
+                data: { id_sala: <?php echo $id_sala; ?> },
+                success: function(data) {
+                    var estadisticas = JSON.parse(data);
+                    var contenido = '';
+                    estadisticas.forEach(function(est) {
+                        contenido += '<p>Jugador: ' + est.nom_usu + ' - Puntos: ' + est.puntos + '</p>';
+                    });
+                    $('#estadisticas-contenido').html(contenido);
+                    $('#estadisticas-modal').show();
+                }
+            });
+        }
+
+        function cerrarModal() {
+            $('#estadisticas-modal').hide();
+            window.location.href = 'index.php';
+        }
+
+        function iniciarContador() {
+            intervalo = setInterval(function() {
+                $('#contador').html("Tiempo restante: " + duracionSala + " segundos");
+                duracionSala--;
+                if (duracionSala < 0) {
+                    clearInterval(intervalo);
+                    alert('El tiempo se ha agotado.');
+                    registrarEstadisticas();
+                }
+            }, 1000);
         }
 
         $(document).ready(function() {
@@ -176,6 +238,7 @@ $armas = $con->query("SELECT armas.id_arma, armas.nom_arma, armas.img, tipos_arm
 
             setInterval(actualizarVida, 1000); // Actualizar vida cada segundo
             setInterval(actualizarJugadores, 1000); // Actualizar jugadores cada segundo
+            iniciarContador();
 
             window.onbeforeunload = function() {
                 return "No puedes salir del campo de batalla en este momento.";
