@@ -8,23 +8,155 @@ $nivel = $con->query("SELECT id_nivel FROM usuarios_niveles WHERE id_usuario = $
 
 $mundos = $con->query("SELECT id_mundo, nom_mundo, img FROM mundos WHERE id_mundo <= $nivel")->fetchAll(PDO::FETCH_ASSOC);
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seleccionar Mundo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        .mundo-card {
-            cursor: pointer;
-            border: 2px solid transparent;
+        :root {
+            --primary-color: #ff4655;
+            --secondary-color: #00eaff;
+            --dark-bg: #1a1a2e;
+            --card-bg: rgba(255, 255, 255, 0.1);
+            --text-color: #ffffff;
         }
+
+        body {
+            font-family: 'Orbitron', 'Rajdhani', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: url('ruta/a/tu/imagen_de_fondo.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text-color);
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.9) 0%, rgba(22, 33, 62, 0.9) 100%);
+            z-index: -1;
+        }
+
+        .container {
+            padding-top: 50px;
+            padding-bottom: 50px;
+        }
+
+        h1 {
+            color: var(--secondary-color);
+            text-shadow: 0 0 10px rgba(0, 234, 255, 0.5);
+            font-weight: 700;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .mundo-card {
+            background-color: var(--card-bg);
+            border: 2px solid transparent;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
         .mundo-card:hover {
-            border-color: #00eaff;
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0, 234, 255, 0.3);
+            border-color: var(--secondary-color);
+        }
+
+        .mundo-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.7) 100%);
+            z-index: 1;
+        }
+
+        .card-img-top {
+            height: 200px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .mundo-card:hover .card-img-top {
+            transform: scale(1.1);
+        }
+
+        .card-body {
+            position: relative;
+            z-index: 2;
+        }
+
+        .card-title {
+            color: var(--text-color);
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding-top: 30px;
+                padding-bottom: 30px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .card-img-top {
+                height: 150px;
+            }
+        }
+
+        /* Efecto de partículas flotantes */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            background-color: var(--secondary-color);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 15s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+            100% {
+                transform: translateY(-100vh) rotate(360deg);
+            }
         }
     </style>
 </head>
 <body>
+    <div class="particles">
+        <!-- Partículas generadas dinámicamente con JavaScript -->
+    </div>
+
     <div class="container mt-5">
         <h1 class="text-center mb-4">Seleccionar Mundo</h1>
         <div class="row">
@@ -40,5 +172,27 @@ $mundos = $con->query("SELECT id_mundo, nom_mundo, img FROM mundos WHERE id_mund
             <?php endforeach; ?>
         </div>
     </div>
+
+    <script>
+        // Generar partículas flotantes
+        function createParticles() {
+            const particlesContainer = document.querySelector('.particles');
+            const particleCount = 50;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                particle.style.width = `${Math.random() * 5 + 1}px`;
+                particle.style.height = particle.style.width;
+                particle.style.animationDuration = `${Math.random() * 10 + 5}s`;
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', createParticles);
+    </script>
 </body>
 </html>
