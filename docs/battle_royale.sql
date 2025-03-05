@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 28-02-2025 a las 05:57:03
+-- Tiempo de generación: 05-03-2025 a las 13:37:16
 -- Versión del servidor: 10.4.32-MariaDB
--- Versión de PHP: 8.2.12
+-- Versión de PHP: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -151,7 +151,9 @@ CREATE TABLE `jugadores_salas` (
   `id_sala` int(11) NOT NULL,
   `hora_entrada` timestamp NOT NULL DEFAULT current_timestamp(),
   `hora_salida` timestamp NOT NULL DEFAULT (current_timestamp() + interval 10 minute),
-  `id_estado_sala` int(11) NOT NULL
+  `id_estado_sala` int(11) NOT NULL,
+  `listo` tinyint(1) DEFAULT 0,
+  `vida` int(11) DEFAULT 100
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -281,8 +283,7 @@ CREATE TABLE `salas` (
 --
 
 INSERT INTO `salas` (`id_sala`, `nom_sala`, `jugadores_actuales`, `id_mundo`, `id_nivel`, `max_jugadores`, `id_estado_sala`, `creado_en`, `duracion_segundos`, `id_ganador`) VALUES
-(1, 'Sala 1', 0, 1, 1, 5, 1, '2025-02-27 21:55:41', 600, NULL),
-(2, 'Sala 2', 0, 1, 1, 4, 1, '2025-02-27 21:56:42', 30, NULL);
+(4, 'Pruebas 2', 0, 1, 1, 5, 1, '2025-03-04 21:21:43', 60, NULL);
 
 -- --------------------------------------------------------
 
@@ -302,7 +303,7 @@ CREATE TABLE `tipos_armas` (
 
 INSERT INTO `tipos_armas` (`id_tip_arma`, `nom_tip_arma`, `dano`) VALUES
 (1, 'cuerpo a cuerpo', 0),
-(2, 'pistola', 0),
+(2, 'pistola', 5),
 (3, 'subfusil', 0),
 (4, 'francotirador', 0);
 
@@ -559,7 +560,7 @@ ALTER TABLE `jugadores_armas`
 -- AUTO_INCREMENT de la tabla `jugadores_salas`
 --
 ALTER TABLE `jugadores_salas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
 
 --
 -- AUTO_INCREMENT de la tabla `mundos`
@@ -601,7 +602,7 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT de la tabla `salas`
 --
 ALTER TABLE `salas`
-  MODIFY `id_sala` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_sala` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `tipos_armas`
