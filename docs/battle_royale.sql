@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 05-03-2025 a las 13:37:16
+-- Tiempo de generación: 06-03-2025 a las 03:11:33
 -- Versión del servidor: 10.4.32-MariaDB
--- Versión de PHP: 8.0.30
+-- Versión de PHP: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -110,7 +110,10 @@ CREATE TABLE `estados` (
 INSERT INTO `estados` (`id_estado`, `nom_estado`) VALUES
 (1, 'activado'),
 (2, 'desactivado'),
-(3, 'inactivo');
+(3, 'inactivo'),
+(4, 'en espera'),
+(5, 'en juego'),
+(6, 'finalizada');
 
 -- --------------------------------------------------------
 
@@ -278,13 +281,6 @@ CREATE TABLE `salas` (
   `id_ganador` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Volcado de datos para la tabla `salas`
---
-
-INSERT INTO `salas` (`id_sala`, `nom_sala`, `jugadores_actuales`, `id_mundo`, `id_nivel`, `max_jugadores`, `id_estado_sala`, `creado_en`, `duracion_segundos`, `id_ganador`) VALUES
-(4, 'Pruebas 2', 0, 1, 1, 5, 1, '2025-03-04 21:21:43', 60, NULL);
-
 -- --------------------------------------------------------
 
 --
@@ -302,10 +298,10 @@ CREATE TABLE `tipos_armas` (
 --
 
 INSERT INTO `tipos_armas` (`id_tip_arma`, `nom_tip_arma`, `dano`) VALUES
-(1, 'cuerpo a cuerpo', 0),
-(2, 'pistola', 5),
-(3, 'subfusil', 0),
-(4, 'francotirador', 0);
+(1, 'cuerpo a cuerpo', 1),
+(2, 'pistola', 2),
+(3, 'subfusil', 10),
+(4, 'francotirador', 20);
 
 -- --------------------------------------------------------
 
@@ -317,6 +313,15 @@ CREATE TABLE `tipos_eventos` (
   `id_tip_evento` int(11) NOT NULL,
   `nom_tip_evento` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `tipos_eventos`
+--
+
+INSERT INTO `tipos_eventos` (`id_tip_evento`, `nom_tip_evento`) VALUES
+(1, 'disparo'),
+(2, 'kill'),
+(3, 'muerte');
 
 -- --------------------------------------------------------
 
@@ -345,7 +350,7 @@ INSERT INTO `usuarios` (`doc`, `nom_usu`, `contra`, `email`, `id_avatar`, `id_ro
 (10000003, 'Jeannn', '$2y$12$COVahk1WpwNeHm9qhyHRde742CHBagEwnVbZBGLqBrXfXimHlElc2', 'stebanrc21@gmail.com', 1, 1, 1, '2025-02-26 20:39:20', '2025-02-26 20:39:20', '2025-02-27 19:44:03'),
 (10000004, 'JeannCelPhoneE', '$2y$12$3V6Vf38DrJJ3pr/ZBFIzkejGuMIEtl49x7CcKdX7..ZVFJvP5g91G', 'jeannfacts@gmail.com', 4, 2, 1, '2025-02-26 20:40:03', '2025-02-26 20:40:03', '2025-02-27 23:26:04'),
 (10000005, 'Samsung', '$2y$12$cSQpLp1MED4/ml5w6LefXeSzJ.57h.fHjXMWWIuK3I4AsLQSx3JWK', 'samsung@gmail.com', 3, 2, 1, '2025-02-27 23:05:29', '2025-02-27 23:05:29', '2025-02-27 23:07:07'),
-(10000006, 'prueba', '$2y$12$CUb4MRFsgls2JGvzS/pcROMHT5mWlYOv392z.wqL6fCV5GhhUTylm', 'prueba@gmail.com', 3, 2, 2, '2025-02-28 04:04:00', '2025-02-28 04:04:00', '2025-02-28 04:04:00'),
+(10000006, 'prueba', '$2y$12$CUb4MRFsgls2JGvzS/pcROMHT5mWlYOv392z.wqL6fCV5GhhUTylm', 'prueba@gmail.com', 3, 2, 1, '2025-02-28 04:04:00', '2025-02-28 04:04:00', '2025-03-05 21:16:36'),
 (10000007, 'Pureba22', '$2y$12$bj4RqfLrqg0Lm5SxaZJrVOJVI6nLem/HZHmUmv3ffVzlDOlb8uNIq', 'prueba22@gmail.com', 3, 2, 2, '2025-02-28 04:38:40', '2025-02-28 04:38:40', '2025-02-28 04:38:40');
 
 -- --------------------------------------------------------
@@ -542,13 +547,13 @@ ALTER TABLE `avatar`
 -- AUTO_INCREMENT de la tabla `estadisticas_juego`
 --
 ALTER TABLE `estadisticas_juego`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT de la tabla `estados`
 --
 ALTER TABLE `estados`
-  MODIFY `id_estado` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_estado` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `jugadores_armas`
@@ -560,7 +565,7 @@ ALTER TABLE `jugadores_armas`
 -- AUTO_INCREMENT de la tabla `jugadores_salas`
 --
 ALTER TABLE `jugadores_salas`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=96;
 
 --
 -- AUTO_INCREMENT de la tabla `mundos`
@@ -578,7 +583,7 @@ ALTER TABLE `niveles`
 -- AUTO_INCREMENT de la tabla `partidas_eventos`
 --
 ALTER TABLE `partidas_eventos`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1214;
 
 --
 -- AUTO_INCREMENT de la tabla `puntos`
@@ -602,7 +607,7 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT de la tabla `salas`
 --
 ALTER TABLE `salas`
-  MODIFY `id_sala` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_sala` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT de la tabla `tipos_armas`
@@ -614,7 +619,7 @@ ALTER TABLE `tipos_armas`
 -- AUTO_INCREMENT de la tabla `tipos_eventos`
 --
 ALTER TABLE `tipos_eventos`
-  MODIFY `id_tip_evento` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_tip_evento` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`

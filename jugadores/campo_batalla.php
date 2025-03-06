@@ -89,8 +89,17 @@ $con->prepare("UPDATE salas SET id_estado_sala = 5 WHERE id_sala = ?")->execute(
         .estadisticas-modal h2 {
             margin-bottom: 20px;
         }
-        .estadisticas-modal p {
-            margin-bottom: 10px;
+        .estadisticas-modal table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .estadisticas-modal th, .estadisticas-modal td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        .estadisticas-modal th {
+            background-color: #f2f2f2;
         }
     </style>
 </head>
@@ -117,7 +126,16 @@ $con->prepare("UPDATE salas SET id_estado_sala = 5 WHERE id_sala = ?")->execute(
     <div class="contador" id="contador"></div>
     <div class="estadisticas-modal" id="estadisticas-modal">
         <h2>Estadísticas de la Partida</h2>
-        <div id="estadisticas-contenido"></div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Jugador</th>
+                    <th>Puntos</th>
+                    <th>Muertes</th>
+                </tr>
+            </thead>
+            <tbody id="estadisticas-contenido"></tbody>
+        </table>
         <button onclick="cerrarModal()">Cerrar</button>
     </div>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -145,19 +163,21 @@ $con->prepare("UPDATE salas SET id_estado_sala = 5 WHERE id_sala = ?")->execute(
         }
 
         function hacerDano(idJugador) {
-            $.ajax({
-                url: 'hacer_dano.php',
-                type: 'POST',
-                data: { id_sala: <?php echo $id_sala; ?>, id_jugador: idJugador, dano: danoArmaSeleccionada, atacante: <?php echo $id_usuario; ?> },
-                success: function(nuevaVida) {
-                    if (nuevaVida <= 0) {
-                        alert('Has matado a ' + $('#jugador-' + idJugador + ' .jugador-nombre').text());
-                        $('#jugador-' + idJugador).addClass('jugador-muerto');
-                        $('#jugador-' + idJugador + ' .avatar').css('pointer-events', 'none');
+            if (vida > 0) {
+                $.ajax({
+                    url: 'hacer_dano.php',
+                    type: 'POST',
+                    data: { id_sala: <?php echo $id_sala; ?>, id_jugador: idJugador, dano: danoArmaSeleccionada, atacante: <?php echo $id_usuario; ?> },
+                    success: function(nuevaVida) {
+                        if (nuevaVida <= 0) {
+                            alert('Has matado a ' + $('#jugador-' + idJugador + ' .jugador-nombre').text());
+                            $('#jugador-' + idJugador).addClass('jugador-muerto');
+                            $('#jugador-' + idJugador + ' .avatar').css('pointer-events', 'none');
+                        }
+                        $('#vida-' + idJugador).text(nuevaVida);
                     }
-                    $('#vida-' + idJugador).text(nuevaVida);
-                }
-            });
+                });
+            }
         }
 
         function actualizarJugadores() {
@@ -199,10 +219,11 @@ $con->prepare("UPDATE salas SET id_estado_sala = 5 WHERE id_sala = ?")->execute(
                     var estadisticas = JSON.parse(data);
                     var contenido = '';
                     estadisticas.forEach(function(est) {
-                        contenido += '<p>Jugador: ' + est.nom_usu + ' - Puntos: ' + est.puntos + '</p>';
+                        contenido += '<tr><td>' + est.nom_usu + '</td><td>' + est.puntos + '</td><td>' + est.muertes + '</td></tr>';
                     });
                     $('#estadisticas-contenido').html(contenido);
                     $('#estadisticas-modal').show();
+                    $('.avatar').css('pointer-events', 'none'); // Deshabilitar clicks en los jugadores
                 }
             });
         }
@@ -214,13 +235,19 @@ $con->prepare("UPDATE salas SET id_estado_sala = 5 WHERE id_sala = ?")->execute(
 
         function iniciarContador() {
             intervalo = setInterval(function() {
-                $('#contador').html("Tiempo restante: " + duracionSala + " segundos");
-                duracionSala--;
-                if (duracionSala < 0) {
-                    clearInterval(intervalo);
-                    alert('El tiempo se ha agotado.');
-                    registrarEstadisticas();
-                }
+                $.ajax({
+                    url: 'obtener_tiempo_restante.php',
+                    type: 'POST',
+                    data: { id_sala: <?php echo $id_sala; ?> },
+                    success: function(tiempoRestante) {
+                        $('#contador').html("Tiempo restante: " + tiempoRestante + " segundos");
+                        if (tiempoRestante <= 0) {
+                            clearInterval(intervalo);
+                            alert('El tiempo se ha agotado.');
+                            registrarEstadisticas();
+                        }
+                    }
+                });
             }, 1000);
         }
 

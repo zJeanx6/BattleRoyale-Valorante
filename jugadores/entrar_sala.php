@@ -24,7 +24,7 @@ try {
 
     // Agregar el jugador a la sala
     $con->beginTransaction();
-    $con->prepare("INSERT INTO jugadores_salas (id_jugador, id_sala, id_estado_sala) VALUES (?, ?, 1)")->execute([$id_usuario, $id_sala]);
+    $con->prepare("INSERT INTO jugadores_salas (id_jugador, id_sala, id_estado_sala) VALUES (?, ?, 4)")->execute([$id_usuario, $id_sala]);
     $con->prepare("UPDATE salas SET jugadores_actuales = jugadores_actuales + 1 WHERE id_sala = ?")->execute([$id_sala]);
     $con->commit();
 

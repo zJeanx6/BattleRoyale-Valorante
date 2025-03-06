@@ -6,8 +6,20 @@ $con = $db->conectar();
 
 $id_sala = intval($_POST['id_sala']);
 
-// Obtener los jugadores de la sala
-$jugadores = $con->query("SELECT id_jugador FROM jugadores_salas WHERE id_sala = $id_sala")->fetchAll(PDO::FETCH_ASSOC);
+// Obtener las estadísticas finales de los jugadores de la sala
+$estadisticas = $con->query("
+    SELECT 
+        u.nom_usu, 
+        u.doc AS id_jugador,
+        COALESCE(SUM(CASE WHEN pe.id_tipo_evento IN (1, 2) THEN pe.puntos ELSE 0 END), 0) AS puntos,
+        COALESCE(COUNT(CASE WHEN pe.id_tipo_evento = 2 THEN 1 END), 0) AS muertes
+    FROM partidas_eventos pe
+    INNER JOIN jugadores_salas js ON pe.id_jugador = js.id_jugador 
+    INNER JOIN usuarios u ON js.id_jugador = u.doc
+    WHERE js.id_sala = $id_sala
+    GROUP BY u.nom_usu, u.doc
+    ORDER BY puntos DESC
+")->fetchAll(PDO::FETCH_ASSOC);
 
 try {
     $con->beginTransaction();
@@ -15,21 +27,15 @@ try {
     $max_puntos = 0;
     $ganador = null;
 
-    foreach ($jugadores as $jugador) {
-        $id_jugador = $jugador['id_jugador'];
+    foreach ($estadisticas as $estadistica) {
+        $id_jugador = $estadistica['id_jugador'];
+        $puntos_partida = $estadistica['puntos'];
+        $muertes_partida = $estadistica['muertes'];
 
         // Obtener estadísticas actuales del jugador
-        $estadisticas = $con->query("SELECT * FROM estadisticas_juego WHERE id_jugador = $id_jugador")->fetch(PDO::FETCH_ASSOC);
+        $estadisticas_actuales = $con->query("SELECT * FROM estadisticas_juego WHERE id_jugador = $id_jugador")->fetch(PDO::FETCH_ASSOC);
 
-        // Calcular puntos obtenidos en la partida
-        $puntos_partida = $con->query("SELECT SUM(puntos) AS puntos FROM partidas_eventos WHERE id_jugador = $id_jugador AND id_tipo_evento = 1")->fetch(PDO::FETCH_ASSOC)['puntos'];
-        $puntos_partida = $puntos_partida ? $puntos_partida : 0;
-
-        // Calcular muertes totales en la partida
-        $muertes_partida = $con->query("SELECT COUNT(*) AS muertes FROM partidas_eventos WHERE id_jugador = $id_jugador AND id_tipo_evento = 2")->fetch(PDO::FETCH_ASSOC)['muertes'];
-        $muertes_partida = $muertes_partida ? $muertes_partida : 0;
-
-        if ($estadisticas) {
+        if ($estadisticas_actuales) {
             // Actualizar estadísticas
             $con->prepare("UPDATE estadisticas_juego SET juegos_jugados = juegos_jugados + 1, puntos_totales = puntos_totales + ?, muertes_totales = muertes_totales + ?, dano_total = dano_total + ?, ultima_partida = CURRENT_TIMESTAMP WHERE id_jugador = ?")
                 ->execute([$puntos_partida, $muertes_partida, $puntos_partida, $id_jugador]);
