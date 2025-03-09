@@ -1,24 +1,9 @@
 <?php 
-session_start();
 require_once('header.php');
-$db = new Database();
-$con = $db->conectar();
-
-$id_usuario = $_SESSION['doc'];
-$usuario = $con->query("SELECT usuarios.nom_usu, usuarios.doc FROM usuarios WHERE usuarios.doc = $id_usuario")->fetch(PDO::FETCH_ASSOC);
-$nivel = $con->query("SELECT niveles.nom_nivel, niveles.img AS nivel_img FROM usuarios_niveles INNER JOIN niveles ON usuarios_niveles.id_nivel = niveles.id_nivel WHERE usuarios_niveles.id_usuario = $id_usuario")->fetch(PDO::FETCH_ASSOC);
-$avatar = $con->query("SELECT img FROM avatar WHERE id_avatar = (SELECT id_avatar FROM usuarios WHERE doc = $id_usuario)")->fetch(PDO::FETCH_ASSOC);
 ?>
-
-<!DOCTYPE html>
-<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Battle Royale - Perfil de Jugador</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Inicio - Battle Royale</title>
     <style>
-        /* Estilos generales */
         :root {
             --primary-color: #ff4655;
             --primary-hover: #e03e4e;
@@ -267,49 +252,55 @@ $avatar = $con->query("SELECT img FROM avatar WHERE id_avatar = (SELECT id_avata
     </style>
 </head>
 <body>
-    <!-- Video de fondo -->
+    <!-- Inicio Video de fondo -->
     <video autoplay muted loop id="background-video">
-        <source src="img/Video/indexJu.mp4" type="video/mp4">
+        <source src="../img/Videos/indexJu.mp4" type="video/mp4">
         Tu navegador no soporta el elemento de video.
     </video>
     <div class="video-overlay"></div>
+    <!-- Fin Video de fondo -->
 
+    <!-- Inicio Contenedor principal -->
     <div class="container-fluid h-100 d-flex flex-column justify-content-between">
-        <div class="row mt-3">
-            <div class="col-12 text-center">
-                <div class="avatar-container">
-                    <img src="<?php echo BASE_URL . $avatar['img']; ?>" class="avatar-img" alt="Avatar">
+            <div class="row mt-3">
+                <div class="col-12 text-center">
+                    <div class="avatar-container">
+                        <img src="<?php echo $avatar['img']; ?>" class="avatar-img" alt="Avatar">
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="row mt-3">
-            <div class="col-12 text-center">
-                <div class="profile-card">
-                    <h2><?php echo htmlspecialchars($usuario['nom_usu']); ?></h2>
-                    <img src="<?php echo BASE_URL . $nivel['nivel_img']; ?>" alt="Nivel" style="max-height: 50px;">
-                    <p>ID: <?php echo htmlspecialchars($usuario['doc']); ?></p>
-                    <a href="<?php echo BASE_URL . '/jugadores/perfil.php'; ?>" class="btn btn-custom">Ver Perfil</a>
-                    <a href="<?php echo BASE_URL . '/include/exit.php'; ?>" class="btn btn-custom">Cerrar Sesion</a>
+        <!-- Fin Contenedor principal -->
+            
+        <!-- Inicio Contenedor de perfil -->
+            <div class="row mt-3">
+                <div class="col-12 text-center">
+                    <div class="profile-card">
+                        <h2><?php echo $usuario['nom_usu']; ?></h2>
+                        <img src="<?php echo $nivel['img']; ?>" alt="Nivel" style="max-height: 50px;">
+                        <p>ID: <?php echo $usuario['doc']; ?></p>
+                        <a href="perfil/perfil.php" class="btn btn-custom">Ver Perfil</a>
+                        <a href="../include/exit.php" class="btn btn-custom">Cerrar Sesion</a>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="row mt-3">
-            <div class="col-12 text-center">
-                <a href="<?php echo BASE_URL . '/jugadores/cambiar_avatar.php'; ?>" class="btn btn-avatar">Cambiar Avatar</a>
-                <a href="<?php echo BASE_URL . '/jugadores/cambiar_armamento.php'; ?>" class="btn btn-avatar">Cambiar Armamento</a>
-            </div>
-        </div>
-        <div class="row mt-3">
-            <div class="col-12 text-center">
-                <div class="dropdown">
-                    <a href="jugar.php" class="btn btn-custom pulse-animation">Jugar</a>
-                </div>
-            </div>
-        </div>
-    </div>
+        <!-- Fin Contenedor de perfil -->
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        <!-- Inicio Contenedor de botones -->
+            <div class="row mt-3">
+                <div class="col-12 text-center">
+                    <a href="perfil/cambiar_avatar.php" class="btn btn-avatar">Cambiar Avatar</a>
+                    <a href="perfil/cambiar_armamento.php" class="btn btn-avatar">Cambiar Armamento</a>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12 text-center">
+                    <div class="dropdown">
+                        <a href="sala/jugar.php" class="btn btn-custom pulse-animation">Jugar</a>
+                    </div>
+                </div>
+            </div>
+        <!-- Fin Contenedor de botones -->
+    </div>
+    <!-- Fin Contenedor principal -->       
 </body>
 </html>

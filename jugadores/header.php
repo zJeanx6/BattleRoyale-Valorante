@@ -1,8 +1,5 @@
 <?php
-// Evitar error "A session is already active"
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+session_start();
 
 // Cargar archivos de configuración
 require_once(__DIR__ . '/../config.php');
@@ -14,25 +11,30 @@ include(ROOT_PATH . '/include/validarSession.php');
 $conex = new Database;  
 $con = $conex->conectar();
 
-// Verificar si el usuario está autenticado
-$id = $_SESSION['doc'] ?? null; // Usa null si no está definido
-$fila = null;
+// Obtener el ID del usuario autenticado
+$id_usuario = $_SESSION['doc']; 
 
-if ($id) {
-    $sql = $con->prepare("
-        SELECT usuarios.doc AS usuario_id, 
-               usuarios.nom_usu AS nom_usu, 
-               roles.id_rol AS rol_id, 
-               roles.nom_rol AS nom_rol, 
-               usuarios.id_estado AS id_estado 
-        FROM usuarios 
-        INNER JOIN roles ON usuarios.id_rol = roles.id_rol 
-        WHERE usuarios.doc = ? 
-    ");
-    $sql->execute([$id]);
+//  Si hay algo en la variable $id_usuario, Obtener el rol del usuario para el header.php
+if ($id_usuario) {$sql = $con->prepare(ObtenerRolPorId());
+    $sql->execute([$id_usuario]);
     $fila = $sql->fetch(PDO::FETCH_ASSOC);
 }
 
-// Definir el título de la página si no está definido
+// Obtener el usuario, nivel y avatar del usuario a traves de su ID para el index.php
+$usuario = $con->query(obtenerUsuarioPorId($id_usuario))->fetch(PDO::FETCH_ASSOC);
+$nivel = $con->query(obtenerNivelPorUsuario($id_usuario))->fetch(PDO::FETCH_ASSOC);
+$avatar = $con->query(obtenerAvatarPorUsuario($id_usuario))->fetch(PDO::FETCH_ASSOC);
+
+// Establecer el título de la página
 $page_title = $page_title ?? "Sin Título";
+
 ?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
