@@ -10,6 +10,14 @@ $id = $_SESSION['doc'];
 $sql = $con->prepare("SELECT usuarios.doc AS usuario_id, usuarios.nom_usu AS nom_usu, roles.id_rol AS rol_id, roles.nom_rol AS nom_rol, usuarios.id_estado AS id_estado FROM usuarios INNER JOIN roles ON usuarios.id_rol = roles.id_rol WHERE usuarios.doc = ? ");
 $sql->execute([$id]);
 $fila = $sql->fetch();
+
+// Validar que el usuario sea administrador (id_rol = 1)
+if ($fila['id_estado'] != 1 || $fila['rol_id'] != 1) {
+    echo "<script>alert('No tiene el rol necesario para ingresar a esta ubicación.');</script>";
+    echo "<script>window.location.href = '" . "../jugadores/index.php';</script>";
+    exit();
+}
+
 // Actualizar la última sesión del usuario
 $con->prepare("UPDATE usuarios SET ultima_sesion = CURRENT_TIMESTAMP WHERE doc = ?")->execute([$id]);
 $page_title = isset($page_title) ? $page_title : "Sin Titulo...";
