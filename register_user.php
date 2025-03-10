@@ -137,6 +137,18 @@ if (isset($_POST['enviar'])) {
         font-size: 16px;
     }
 
+    .btn-submit_1 {
+        background: red;
+        border: none;
+        padding: 10px;
+        width: 100%;
+        border-radius: 5px;
+        cursor: pointer;
+        color: white;
+        font-size: 16px;
+    }
+
+
     .invalid-feedback {
         color: red;
         font-size: 12px;
@@ -184,6 +196,9 @@ if (isset($_POST['enviar'])) {
                     <div class="invalid-feedback">Las contraseñas no coinciden.</div>
                 </div>
                 <button class="btn btn-submit w-100" type="submit" name="enviar">Registrar</button>
+                <div class="text-center">
+                    <a href="login.php">ya tienes una cuenta? inicar sesion.</a>
+                </div>
             </form>
         </div>
     </div>
