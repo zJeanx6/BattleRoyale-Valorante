@@ -7,25 +7,14 @@ $con = $db->conectar();
 $id_sala = intval($_POST['id_sala']);
 
 // Obtener las estadísticas finales de los jugadores de la sala
-$estadisticas = $con->query("SELECT 
-    u.nom_usu, 
-    u.doc AS id_jugador,
-    COALESCE(SUM(CASE WHEN pe.id_tipo_evento IN (1, 2) THEN pe.puntos ELSE 0 END), 0) AS puntos,
-    COALESCE(COUNT(CASE WHEN pe.id_tipo_evento = 2 THEN 1 END), 0) AS muertes
-FROM 
-    partidas_eventos pe
-INNER JOIN 
-    jugadores_salas js ON pe.id_jugador = js.id_jugador 
-INNER JOIN 
-    usuarios u ON js.id_jugador = u.doc
-WHERE 
-    js.id_sala = $id_sala
-GROUP BY 
-    u.nom_usu, u.doc    
-ORDER BY 
-    puntos DESC;
-
-")->fetchAll(PDO::FETCH_ASSOC);
+$estadisticas = $con->query("SELECT id_jugador, nom_usu,
+    SUM(CASE WHEN id_tipo_evento IN (1, 2) THEN puntos ELSE 0 END) AS puntos,
+    COUNT(CASE WHEN id_tipo_evento = 2 THEN 1 END) AS muertes
+    FROM partidas_eventos
+    INNER JOIN usuarios ON usuarios.doc = partidas_eventos.id_jugador
+    WHERE id_sala = $id_sala
+    GROUP BY id_jugador
+    ORDER BY puntos DESC;")->fetchAll(PDO::FETCH_ASSOC);
 
 try {
     $con->beginTransaction();

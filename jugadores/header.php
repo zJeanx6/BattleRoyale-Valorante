@@ -15,7 +15,8 @@ $con = $conex->conectar();
 $id_usuario = $_SESSION['doc']; 
 
 //  Si hay algo en la variable $id_usuario, Obtener el rol del usuario para el header.php
-if ($id_usuario) {$sql = $con->prepare(ObtenerRolPorId());
+if ($id_usuario) {
+    $sql = $con->prepare(ObtenerRolPorId());
     $sql->execute([$id_usuario]);
     $fila = $sql->fetch(PDO::FETCH_ASSOC);
 }
@@ -24,6 +25,21 @@ if ($id_usuario) {$sql = $con->prepare(ObtenerRolPorId());
 $usuario = $con->query(obtenerUsuarioPorId($id_usuario))->fetch(PDO::FETCH_ASSOC);
 $nivel = $con->query(obtenerNivelPorUsuario($id_usuario))->fetch(PDO::FETCH_ASSOC);
 $avatar = $con->query(obtenerAvatarPorUsuario($id_usuario))->fetch(PDO::FETCH_ASSOC);
+
+// Obtener el nivel del usuario y la información del nivel
+$nivel_usuario = $con->query("SELECT * FROM usuarios_niveles WHERE id_usuario = $id_usuario")->fetch(PDO::FETCH_ASSOC);
+$nivel = $con->query("SELECT * FROM niveles WHERE id_nivel = " . $nivel_usuario['id_nivel'])->fetch(PDO::FETCH_ASSOC);
+
+// Verificar y actualizar el nivel del usuario si tiene más de 500 puntos
+$puntos_totales = $con->query("SELECT SUM(puntos) AS total_puntos FROM partidas_eventos WHERE id_jugador = $id_usuario")->fetch(PDO::FETCH_ASSOC)['total_puntos'];
+if ($puntos_totales > 500 && $nivel_usuario['id_nivel'] < 2) {
+    $con->prepare("UPDATE usuarios_niveles SET id_nivel = 2, fecha = NOW() WHERE id_usuario = ?")->execute([$id_usuario]);
+    // Actualizar el nivel en la variable $nivel
+    $nivel = $con->query(obtenerNivelPorUsuario($id_usuario))->fetch(PDO::FETCH_ASSOC);
+}
+
+// Actualizar la última sesión del usuario
+$con->prepare("UPDATE usuarios SET ultima_sesion = CURRENT_TIMESTAMP WHERE doc = ?")->execute([$id_usuario]);
 
 // Establecer el título de la página
 $page_title = $page_title ?? "Sin Título";

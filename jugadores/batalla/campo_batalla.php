@@ -15,51 +15,111 @@ $con->prepare("UPDATE salas SET id_estado_sala = 5 WHERE id_sala = ?")->execute(
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Campo de Batalla</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #ff4655;
+            --secondary-color: #00eaff;
+            --dark-bg: #1a1a2e;
+            --card-bg: rgba(255, 255, 255, 0.1);
+            --text-color: #ffffff;
+        }
+
         body {
+            font-family: 'Orbitron', 'Rajdhani', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-image: url('../../img/mundos/67c0c6f16cf66_Breeze_loading_screen.jpg');
             background-size: cover;
+            color: var(--text-color);
+            min-height: 100vh;
+            position: relative;
         }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.9) 0%, rgba(22, 33, 62, 0.9) 100%);
+            z-index: -1;
+        }
+
+        .container {
+            padding-top: 50px;
+            padding-bottom: 50px;
+        }
+
+        h1 {
+            color: var(--secondary-color);
+            text-shadow: 0 0 10px rgba(0, 234, 255, 0.5);
+            font-weight: 700;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
         .avatar {
-            position: absolute;
-            width: 50px;
-            height: 50px;
-            cursor: pointer;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-top: 10px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
         }
+
         .hud {
             position: fixed;
             bottom: 10px;
             left: 10px;
             color: white;
         }
+
         .contador {
             position: fixed;
             top: 10px;
             right: 10px;
             color: white;
         }
+
         .arma {
             width: 50px;
             height: 50px;
             cursor: pointer;
             border: 2px solid transparent;
         }
+
         .arma-seleccionada {
             border-color: blue;
         }
+
         .jugador-cajon {
             width: 150px;
-            height: 150px;
+            height: 200px;
             border: 2px solid #ccc;
             border-radius: 10px;
             margin: 10px;
             display: inline-block;
             text-align: center;
             vertical-align: top;
+            background-color: var(--card-bg);
+            transition: all 0.3s ease;
+            position: relative;
         }
+
+        .jugador-cajon:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0, 234, 255, 0.3);
+            border-color: var(--secondary-color);
+        }
+
         .jugador-muerto {
             position: relative;
         }
+
         .jugador-muerto::after {
             content: 'X';
             color: red;
@@ -69,6 +129,7 @@ $con->prepare("UPDATE salas SET id_estado_sala = 5 WHERE id_sala = ?")->execute(
             left: 50%;
             transform: translate(-50%, -50%);
         }
+
         .estadisticas-modal {
             display: none;
             position: fixed;
@@ -81,31 +142,36 @@ $con->prepare("UPDATE salas SET id_estado_sala = 5 WHERE id_sala = ?")->execute(
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
             z-index: 1000;
         }
+
         .estadisticas-modal h2 {
             margin-bottom: 20px;
         }
+
         .estadisticas-modal table {
             width: 100%;
             border-collapse: collapse;
         }
+
         .estadisticas-modal th, .estadisticas-modal td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: center;
+            color: black; /* Cambiar el color del texto a negro */
         }
+
         .estadisticas-modal th {
-            background-color: #f2f2f2;
+            background-color:rgb(173, 174, 180);
         }
     </style>
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="text-center mb-4"><?php echo ($sala['nom_sala']); ?></h1>
+        <h1 class="text-center mb-4"><?php echo htmlspecialchars($sala['nom_sala']); ?></h1>
         <div class="d-flex justify-content-center">
             <?php foreach ($jugadores as $jugador): ?>
                 <div class="jugador-cajon <?php echo $jugador['vida'] <= 0 ? 'jugador-muerto' : ''; ?>" id="jugador-<?php echo $jugador['doc']; ?>">
-                    <img src="../<?php echo ($jugador['avatar']); ?>" alt="<?php echo ($jugador['nom_usu']); ?>" class="avatar" <?php echo $jugador['vida'] <= 0 ? 'style="pointer-events: none;"' : ''; ?>>
-                    <div class="jugador-nombre"><?php echo ($jugador['nom_usu']); ?></div>
+                    <img src="../<?php echo htmlspecialchars($jugador['avatar']); ?>" alt="<?php echo htmlspecialchars($jugador['nom_usu']); ?>" class="avatar" <?php echo $jugador['vida'] <= 0 ? 'style="pointer-events: none;"' : ''; ?>>
+                    <div class="jugador-nombre"><?php echo htmlspecialchars($jugador['nom_usu']); ?></div>
                     <div class="jugador-vida">Vida: <span id="vida-<?php echo $jugador['doc']; ?>"><?php echo $jugador['vida']; ?></span> HP</div>
                 </div>
             <?php endforeach; ?>
@@ -115,12 +181,11 @@ $con->prepare("UPDATE salas SET id_estado_sala = 5 WHERE id_sala = ?")->execute(
         <div id="hud-vida">Vida: <span id="vida"><?php echo isset($jugadores[0]) ? $jugadores[0]['vida'] : 100; ?></span> HP</div>
         <div id="hud-armas">Armas:</div>
         <?php foreach ($armas as $arma): ?>
-            <img src="../<?php echo ($arma['img']); ?>" alt="<?php echo ($arma['nom_arma']); ?>" class="arma" id="arma-<?php echo ($arma['id_arma']); ?>" data-dano="<?php echo ($arma['dano']); ?>">
+            <img src="../<?php echo htmlspecialchars($arma['img']); ?>" alt="<?php echo htmlspecialchars($arma['nom_arma']); ?>" class="arma" id="arma-<?php echo $arma['id_arma']; ?>" data-dano="<?php echo $arma['dano']; ?>">
         <?php endforeach; ?>
     </div>
     <div class="contador" id="contador"></div>
     <div class="estadisticas-modal" id="estadisticas-modal">
-        <h2>Estadísticas de la Partida</h2>
         <table>
             <thead>
                 <tr>
@@ -139,6 +204,7 @@ $con->prepare("UPDATE salas SET id_estado_sala = 5 WHERE id_sala = ?")->execute(
         var duracionSala = <?php echo $sala['duracion_segundos']; ?>;
         var intervalo;
         var danoArmaSeleccionada = 0;
+        var partidaTerminada = false;
 
         function actualizarVida() {
             $.ajax({
@@ -233,18 +299,37 @@ $con->prepare("UPDATE salas SET id_estado_sala = 5 WHERE id_sala = ?")->execute(
                 $.ajax({
                     url: 'obtener_tiempo_restante.php',
                     type: 'POST',
-                    data: { id_sala: <?php echo $id_sala; ?> },
+                    data: { id_sala: <?php echo $id_sala; ?>, id_usuario: <?php echo $id_usuario; ?> },
                     success: function(tiempoRestante) {
                         $('#contador').html("Tiempo restante: " + tiempoRestante + " segundos");
                         if (tiempoRestante <= 0) {
                             clearInterval(intervalo);
-                            alert('El tiempo se ha agotado.');
-                            registrarEstadisticas();
+                            if (!partidaTerminada) {
+                                partidaTerminada = true;
+                                alert('El tiempo se ha agotado.');
+                                registrarEstadisticas();
+                            }
                         }
                     }
                 });
             }, 1000);
         }   
+
+        function actualizarJugadoresVivos() {
+            $.ajax({
+                url: 'actualizar_jugadores_vivos.php',
+                type: 'POST',
+                data: { id_sala: <?php echo $id_sala; ?> },
+                success: function(jugadoresVivos) {
+                    if (jugadoresVivos <= 1 && !partidaTerminada) {
+                        partidaTerminada = true;
+                        clearInterval(intervalo);
+                        alert('La partida ha terminado.');
+                        registrarEstadisticas();
+                    }
+                }
+            });
+        }
 
         $(document).ready(function() {
             $('.avatar').click(function() {
@@ -260,6 +345,7 @@ $con->prepare("UPDATE salas SET id_estado_sala = 5 WHERE id_sala = ?")->execute(
 
             setInterval(actualizarVida, 1000); // Actualizar vida cada segundo
             setInterval(actualizarJugadores, 1000); // Actualizar jugadores cada segundo
+            setInterval(actualizarJugadoresVivos, 1000); // Verificar jugadores vivos cada segundo
             iniciarContador();
 
             window.onbeforeunload = function() {

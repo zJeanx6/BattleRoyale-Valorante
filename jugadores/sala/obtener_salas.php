@@ -1,7 +1,11 @@
 <?php
 require_once('../header.php');
 $id_mundo = intval($_GET['id_mundo']);
-$salas = $con->query("SELECT salas.id_sala, salas.nom_sala, salas.jugadores_actuales, salas.max_jugadores, estados.nom_estado FROM salas INNER JOIN estados ON salas.id_estado_sala = estados.id_estado WHERE salas.id_mundo = $id_mundo AND (salas.id_estado_sala = 4 OR salas.id_estado_sala = 5)")->fetchAll(PDO::FETCH_ASSOC);
+
+// Obtener el nivel del jugador
+$id_nivel = $con->query("SELECT id_nivel FROM usuarios_niveles WHERE id_usuario = $id_usuario")->fetch(PDO::FETCH_ASSOC)['id_nivel'];
+
+$salas = $con->query("SELECT salas.id_sala, salas.nom_sala, salas.jugadores_actuales, salas.max_jugadores, estados.nom_estado FROM salas INNER JOIN estados ON salas.id_estado_sala = estados.id_estado WHERE salas.id_mundo = $id_mundo AND salas.id_nivel = $id_nivel AND (salas.id_estado_sala = 4 OR salas.id_estado_sala = 5)")->fetchAll(PDO::FETCH_ASSOC);
 
 if (empty($salas)) {
     echo '<div class="col-12 text-center">
@@ -14,11 +18,107 @@ if (empty($salas)) {
                 <div class="card sala-card ' . ($sala['nom_estado'] == 'en juego' ? 'sala-en-juego' : '') . '" ' . ($sala['nom_estado'] == 'en juego' ? 'style="pointer-events: none;"' : 'onclick="location.href=\'entrar_sala.php?id_sala=' . $sala['id_sala'] . '\'"') . '>
                     <div class="card-body text-center">
                         <h5 class="card-title">' . htmlspecialchars($sala['nom_sala']) . '</h5>
-                        <p>Jugadores: ' . $sala['jugadores_actuales'] . '/' . $sala['max_jugadores'] . '</p>
-                        <p>Estado: ' . htmlspecialchars($sala['nom_estado']) . '</p>
+                        <h6 class="card-title">Jugadores: ' . $sala['jugadores_actuales'] . '/' . $sala['max_jugadores'] . '</h6>
+                        <h6 class="card-title">Estado: ' . ($sala['nom_estado']) . '</h6>
                     </div>
                 </div>
               </div>';
     }
 }
 ?>
+<style>
+    :root {
+        --primary-color: #ff4655;
+        --secondary-color: #00eaff;
+        --dark-bg: #1a1a2e;
+        --card-bg: rgba(255, 255, 255, 0.1);
+        --text-color: #ffffff;
+    }
+
+    body {
+        font-family: 'Orbitron', 'Rajdhani', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-size: cover;
+        color: var(--text-color);
+        min-height: 100vh;
+        position: relative;
+    }
+
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(26, 26, 46, 0.9) 0%, rgba(22, 33, 62, 0.9) 100%);
+        z-index: -1;
+    }
+
+    .container {
+        padding-top: 50px;
+        padding-bottom: 50px;
+    }
+
+    h1 {
+        color: var(--secondary-color);
+        text-shadow: 0 0 10px rgba(0, 234, 255, 0.5);
+        font-weight: 700;
+        margin-bottom: 30px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .sala-card {
+        background-color: var(--card-bg);
+        border: 2px solid transparent;
+        border-radius: 15px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .sala-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 10px 20px rgba(0, 234, 255, 0.3);
+        border-color: var(--secondary-color);
+    }
+
+    .sala-card::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.7) 100%);
+        z-index: 1;
+    }
+
+    .card-body {
+        position: relative;
+        z-index: 2;
+    }
+
+    .card-title {
+        color: var(--text-color);
+        font-weight: 600;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .sala-en-juego {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            padding-top: 30px;
+            padding-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2rem;
+        }
+    }
+</style>

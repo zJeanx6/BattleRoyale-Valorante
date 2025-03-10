@@ -5,17 +5,17 @@ $conex = new Database;
 $con = $conex->conectar();
 
 if (isset($_POST['enviar'])) {
-    $email = ($_POST['email']); 
+    $username = ($_POST['username']); 
     $pass = ($_POST['pass']); 
 
-    if ($email == '' || $pass == '') {
-        echo '<script>alert("Email o Contraseña Vacíos")</script>';
+    if ($username == '' || $pass == '') {
+        echo '<script>alert("Nombre de Usuario o Contraseña Vacíos")</script>';
         echo '<script>window.location = "../login.php"</script>';
         exit();
     }
 
-    $sql = $con->prepare("SELECT * FROM usuarios WHERE email = '$email'");
-    $sql->execute();
+    $sql = $con->prepare("SELECT * FROM usuarios WHERE nom_usu = ?");
+    $sql->execute([$username]);
     $fila = $sql->fetch();
 
     if ($fila && $fila['id_estado'] == 1 && password_verify($pass, $fila['contra'])) {

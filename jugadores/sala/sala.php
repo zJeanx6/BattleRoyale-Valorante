@@ -11,475 +11,236 @@ $jugadores = $con->query("SELECT usuarios.nom_usu, avatar.img AS avatar, jugador
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sala de Espera</title>
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
-        /* Estilos generales */
+        :root {
+            --primary-color: #ff4655;
+            --secondary-color: #00eaff;
+            --dark-bg: #1a1a2e;
+            --card-bg: rgba(255, 255, 255, 0.1);
+            --text-color: #ffffff;
+        }
+
         body {
-            background-color: #0f1123;
-            color: white;
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            font-family: 'Orbitron', 'Rajdhani', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-size: cover;
+            color: var(--text-color);
             min-height: 100vh;
-            justify-content: center;
+            position: relative;
         }
-        
-        /* Título con efecto de brillo */
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.9) 0%, rgba(22, 33, 62, 0.9) 100%);
+            z-index: -1;
+        }
+
+        .container {
+            padding-top: 50px;
+            padding-bottom: 50px;
+        }
+
         h1 {
-            color: #00e5ff;
-            font-size: 3rem;
-            text-align: center;
-            margin-bottom: 2rem;
+            color: var(--secondary-color);
+            text-shadow: 0 0 10px rgba(0, 234, 255, 0.5);
+            font-weight: 700;
+            margin-bottom: 30px;
             text-transform: uppercase;
-            letter-spacing: 3px;
-            text-shadow: 0 0 10px rgba(0, 229, 255, 0.7), 0 0 20px rgba(0, 229, 255, 0.5);
+            letter-spacing: 2px;
         }
-        
-        /* Contenedor de jugadores */
-        #jugadores-list {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 2rem;
-        }
-        
-        /* Cajas de jugadores */
+
         .jugador-cajon {
             width: 150px;
-            height: 180px;
-            border: 2px solid;
+            height: 150px;
+            border: 2px solid #ccc;
             border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background-color: #1a1c30;
+            margin: 10px;
+            display: inline-block;
+            text-align: center;
+            vertical-align: top;
+            background-color: var(--card-bg);
             transition: all 0.3s ease;
             position: relative;
-            overflow: hidden;
         }
-        
-        .listo {
-            border-color: #00ff9d;
-            box-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+
+        .jugador-cajon:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0, 234, 255, 0.3);
+            border-color: var(--secondary-color);
         }
-        
-        .no-listo {
-            border-color: #ff3e3e;
-            box-shadow: 0 0 10px rgba(255, 62, 62, 0.5);
-        }
-        
-        .esperando {
-            border-color: #444;
-        }
-        
+
         .jugador-avatar {
             width: 100px;
             height: 100px;
             border-radius: 50%;
-            margin-bottom: 10px;
-            object-fit: cover;
+            margin-top: 10px;
         }
-        
+
         .jugador-nombre {
-            font-weight: bold;
-            text-align: center;
-            width: 100%;
-            padding: 0 5px;
-            box-sizing: border-box;
+            margin-top: 10px;
+            color: var(--text-color);
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
         }
-        
-        .jugador-estado {
-            font-size: 0.8rem;
-            margin-top: 5px;
+
+        .listo {
+            border-color: green;
         }
-        
-        .estado-listo {
-            color: #00ff9d;
+
+        .no-listo {
+            border-color: red;
         }
-        
-        .estado-no-listo {
-            color: #ff3e3e;
+
+        .esperando {
+            border-color: gray;
         }
-        
-        /* Botones */
-        .btn-container {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 1.5rem;
-        }
-        
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 5px;
-            font-weight: bold;
-            font-size: 1rem;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-secondary {
-            background-color: #00e5ff;
-            color: #000;
-        }
-        
-        .btn-secondary:hover {
-            background-color: #00b8cc;
-            box-shadow: 0 0 15px rgba(0, 229, 255, 0.7);
-        }
-        
-        .btn-success {
-            background-color: #00ff9d;
-            color: #000;
-        }
-        
-        .btn-success:hover {
-            background-color: #00cc7d;
-            box-shadow: 0 0 15px rgba(0, 255, 157, 0.7);
-        }
-        
-        .btn-danger {
-            background-color: #ff3e3e;
-            color: white;
-        }
-        
-        .btn-danger:hover {
-            background-color: #e62e2e;
-            box-shadow: 0 0 15px rgba(255, 62, 62, 0.7);
-        }
-        
-        /* Contador */
-        #contador {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #00e5ff;
-            text-shadow: 0 0 10px rgba(0, 229, 255, 0.7);
-            animation: pulse 1.5s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { opacity: 0.7; }
-            50% { opacity: 1; }
-            100% { opacity: 0.7; }
-        }
-        
-        /* Modal de confirmación */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .modal-content {
-            background-color: #1a1c30;
-            border: 1px solid #00e5ff;
-            border-radius: 10px;
-            padding: 20px;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
-        }
-        
-        .modal-title {
-            color: #00e5ff;
-            margin-top: 0;
-        }
-        
-        .modal-text {
-            margin-bottom: 20px;
-            color: #ccc;
-        }
-        
-        .modal-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-        
-        /* Responsive */
+
         @media (max-width: 768px) {
+            .container {
+                padding-top: 30px;
+                padding-bottom: 30px;
+            }
+
             h1 {
                 font-size: 2rem;
             }
-            
+
             .jugador-cajon {
-                width: 130px;
-                height: 160px;
+                width: 120px;
+                height: 120px;
             }
-            
+
             .jugador-avatar {
                 width: 80px;
                 height: 80px;
-            }
-            
-            .btn {
-                padding: 10px 20px;
-                font-size: 0.9rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1 id="room-name">Sala de Batalla</h1>
-        
-        <div id="jugadores-list">
-            <!-- Los jugadores se generarán dinámicamente -->
+    <div class="container mt-5">
+        <h1 class="text-center mb-4"><?php echo $sala['nom_sala']; ?></h1>
+        <div class="d-flex justify-content-center">
+            <div id="jugadores-list">
+                <?php for ($i = 0; $i < 5; $i++): ?>
+                    <div class="jugador-cajon <?php echo isset($jugadores[$i]) ? ($jugadores[$i]['listo'] ? 'listo' : 'no-listo') : 'esperando'; ?>" id="jugador-<?php echo $i; ?>">
+                        <?php if (isset($jugadores[$i])): ?>
+                            <img src="../<?php echo $jugadores[$i]['avatar']; ?>" alt="Avatar" class="jugador-avatar">
+                            <div class="jugador-nombre"><?php echo $jugadores[$i]['nom_usu']; ?></div>
+                        <?php else: ?>
+                            <div class="jugador-nombre">Esperando...</div>
+                        <?php endif; ?>
+                    </div>
+                <?php endfor; ?>
+            </div>
         </div>
-        
-        <div class="btn-container" id="buttons-container">
+        <div class="text-center mt-3">
             <button id="listo-btn" class="btn btn-secondary">Listo</button>
             <button id="abandonar" class="btn btn-danger">Abandonar Sala</button>
         </div>
-        
-        <div id="contador"></div>
+        <div id="contador" class="mt-3 text-center"></div>
     </div>
-    
-    <!-- Modal de confirmación -->
-    <div id="confirm-modal" class="modal">
-        <div class="modal-content">
-            <h3 class="modal-title">¿Abandonar la sala?</h3>
-            <p class="modal-text">¿Estás seguro de que quieres abandonar la sala?</p>
-            <div class="modal-buttons">
-                <button id="cancel-leave" class="btn btn-secondary">Cancelar</button>
-                <button id="confirm-leave" class="btn btn-danger">Abandonar</button>
-            </div>
-        </div>
-    </div>
-    
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script>
-        // Variables globales
         var listo = false;
         var intervalo;
         var contadorEnEjecucion = false;
-        var id_sala = <?php echo isset($id_sala) ? $id_sala : 1; ?>;
-        var id_usuario = <?php echo isset($id_usuario) ? $id_usuario : 1; ?>;
-        
-        // Datos de ejemplo para jugadores (reemplazar con datos reales de PHP)
-        var jugadores = [
-            { id: 1, nom_usu: "Jugador1", avatar: "placeholder.jpg", listo: false },
-            { id: 2, nom_usu: "Jugador2", avatar: "placeholder.jpg", listo: true },
-            null,
-            null,
-            null
-        ];
-        
-        // Función para renderizar jugadores
-        function renderizarJugadores() {
-            var html = '';
-            
-            for (var i = 0; i < 5; i++) {
-                var jugador = jugadores[i];
-                var estadoClase = !jugador ? 'esperando' : (jugador.listo ? 'listo' : 'no-listo');
-                
-                html += '<div class="jugador-cajon ' + estadoClase + '" id="jugador-' + i + '">';
-                
-                if (jugador) {
-                    html += '<img src="' + jugador.avatar + '" alt="Avatar" class="jugador-avatar">';
-                    html += '<div class="jugador-nombre">' + jugador.nom_usu + '</div>';
-                    html += '<div class="jugador-estado ' + (jugador.listo ? 'estado-listo' : 'estado-no-listo') + '">';
-                    html += jugador.listo ? 'LISTO' : 'NO LISTO';
-                    html += '</div>';
-                } else {
-                    html += '<div class="jugador-nombre">ESPERANDO...</div>';
-                }
-                
-                html += '</div>';
-            }
-            
-            $('#jugadores-list').html(html);
-        }
-        
-        // Inicializar la interfaz
-        $(document).ready(function() {
-            // Renderizar jugadores iniciales
-            renderizarJugadores();
-            
-            // Establecer nombre de sala (reemplazar con datos reales de PHP)
-            var nombreSala = "<?php echo isset($sala['nom_sala']) ? $sala['nom_sala'] : 'Sala de Batalla'; ?>";
-            $('#room-name').text(nombreSala);
-            
-            // Evento de botón listo
-            $('#listo-btn').click(function() {
-                listo = !listo;
-                $(this).toggleClass('btn-secondary btn-success');
-                $(this).text(listo ? 'Cancelar' : 'Listo');
-                actualizarEstadoListo();
-            });
-            
-            // Evento de botón abandonar
-            $('#abandonar').click(function() {
-                $('#confirm-modal').css('display', 'flex');
-            });
-            
-            // Eventos del modal
-            $('#cancel-leave').click(function() {
-                $('#confirm-modal').css('display', 'none');
-            });
-            
-            $('#confirm-leave').click(function() {
-                abandonarSala();
-            });
-            
-            // Iniciar actualizaciones periódicas
-            setInterval(actualizarJugadores, 1000);
-            setInterval(verificarListos, 1000);
+
+        $('#listo-btn').click(function() {
+            listo = !listo;
+            $(this).toggleClass('btn-success btn-secondary');
+            $(this).text(listo ? 'Cancelar' : 'Listo');
+            actualizarEstadoListo();
         });
-        
-        // Función para actualizar estado listo
+
+        $('#abandonar').click(function() {
+            if (confirm("¿Estás seguro de que quieres abandonar la sala?")) {
+                $.ajax({
+                    url: 'abandonar_sala.php',
+                    type: 'POST',
+                    data: { id_sala: <?php echo $id_sala; ?>, id_usuario: <?php echo $id_usuario; ?> },
+                    success: function() {
+                        window.location.href = '../index.php';
+                    }
+                });
+            }
+        });
+
         function actualizarEstadoListo() {
-            // En un entorno real, esto sería una llamada AJAX
-            // $.ajax({
-            //     url: 'marcar_listo.php',
-            //     type: 'POST',
-            //     data: { id_sala: id_sala, id_usuario: id_usuario, listo: listo ? 1 : 0 },
-            //     success: function() {
-            //         actualizarJugadores();
-            //         verificarListos();
-            //     }
-            // });
-            
-            // Para demostración, actualizamos directamente
-            jugadores[0].listo = listo;
-            renderizarJugadores();
-            verificarListos();
+            $.ajax({
+                url: 'marcar_listo.php',
+                type: 'POST',
+                data: { id_sala: <?php echo $id_sala; ?>, id_usuario: <?php echo $id_usuario; ?>, listo: listo ? 1 : 0 },
+                success: function() {
+                    actualizarJugadores();
+                    verificarListos();
+                }
+            });
         }
-        
-        // Función para actualizar jugadores
+
         function actualizarJugadores() {
             if (!contadorEnEjecucion) {
-                // En un entorno real, esto sería una llamada AJAX
-                // $.ajax({
-                //     url: 'actualizar_jugadores.php',
-                //     type: 'POST',
-                //     data: { id_sala: id_sala },
-                //     success: function(data) {
-                //         // Procesar datos recibidos
-                //         renderizarJugadores();
-                //     }
-                // });
-                
-                // Para demostración, simulamos cambios aleatorios
-                if (Math.random() > 0.9) {
-                    var emptySlot = jugadores.findIndex(p => p === null);
-                    if (emptySlot >= 0 && emptySlot > 1) { // No modificar los primeros dos jugadores
-                        jugadores[emptySlot] = {
-                            id: Math.floor(Math.random() * 1000),
-                            nom_usu: "Jugador" + Math.floor(Math.random() * 100),
-                            avatar: "placeholder.jpg",
-                            listo: Math.random() > 0.5
-                        };
-                        renderizarJugadores();
+                $.ajax({
+                    url: 'actualizar_jugadores.php',
+                    type: 'POST',
+                    data: { id_sala: <?php echo $id_sala; ?> },
+                    success: function(data) {
+                        $('#jugadores-list').html(data);
                     }
-                }
+                });
             }
         }
-        
-        // Función para verificar si todos están listos
+
         function verificarListos() {
             if (!contadorEnEjecucion) {
-                // En un entorno real, esto sería una llamada AJAX
-                // $.ajax({
-                //     url: 'verificar_listos.php',
-                //     type: 'POST',
-                //     data: { id_sala: id_sala },
-                //     success: function(data) {
-                //         if (data === 'todos_listos') {
-                //             iniciarContador();
-                //         } else {
-                //             clearInterval(intervalo);
-                //             $('#contador').html('');
-                //             contadorEnEjecucion = false;
-                //         }
-                //     }
-                // });
-                
-                // Para demostración, verificamos directamente
-                var jugadoresPresentes = jugadores.filter(j => j !== null);
-                var todosListos = jugadoresPresentes.length >= 2 && jugadoresPresentes.every(j => j.listo);
-                
-                if (todosListos) {
-                    iniciarContador();
-                } else if (contadorEnEjecucion) {
-                    clearInterval(intervalo);
-                    $('#contador').html('');
-                    contadorEnEjecucion = false;
-                }
-            }
-        }
-        
-        // Función para iniciar contador
-        function iniciarContador() {
-            if (!contadorEnEjecucion) {
-                contadorEnEjecucion = true;
-                var contador = 10;
-                $('#buttons-container').hide();
-                
-                $('#contador').html("Iniciando en " + contador + " segundos...");
-                
-                intervalo = setInterval(function() {
-                    contador--;
-                    $('#contador').html("Iniciando en " + contador + " segundos...");
-                    
-                    if (contador < 0) {
-                        clearInterval(intervalo);
-                        iniciarPartida();
+                $.ajax({
+                    url: 'verificar_listos.php',
+                    type: 'POST',
+                    data: { id_sala: <?php echo $id_sala; ?> },
+                    success: function(data) {
+                        if (data === 'todos_listos') {
+                            iniciarContador();
+                        } else {
+                            clearInterval(intervalo);
+                            $('#contador').html('');
+                            contadorEnEjecucion = false;
+                        }
                     }
-                }, 1000);
+                });
             }
         }
-        
-        // Función para iniciar partida
-        function iniciarPartida() {
-            // En un entorno real, esto sería una llamada AJAX
-            // $.ajax({
-            //     url: 'iniciar_partida.php',
-            //     type: 'POST',
-            //     data: { id_sala: id_sala },
-            //     success: function() {
-            //         window.location.href = "../batalla/campo_batalla.php?id_sala=" + id_sala;
-            //     }
-            // });
-            
-            // Para demostración, redirigimos directamente
-            window.location.href = "../batalla/campo_batalla.php?id_sala=" + id_sala;
+
+        function iniciarContador() {
+            contadorEnEjecucion = true;
+            var contador = 10;
+            $('#listo-btn').hide();
+            $('#abandonar').hide();
+            intervalo = setInterval(function() {
+                $('#contador').html("Iniciando en " + contador + " segundos...");
+                contador--;
+                if (contador < 0) {
+                    clearInterval(intervalo);
+                    $.ajax({
+                        url: 'iniciar_partida.php',
+                        type: 'POST',
+                        data: { id_sala: <?php echo $id_sala; ?> },
+                        success: function() {
+                            window.location.href = "../batalla/campo_batalla.php?id_sala=<?php echo $id_sala; ?>";
+                        }
+                    });
+                }
+            }, 1000);
         }
-        
-        // Función para abandonar sala
-        function abandonarSala() {
-            // En un entorno real, esto sería una llamada AJAX
-            // $.ajax({
-            //     url: 'abandonar_sala.php',
-            //     type: 'POST',
-            //     data: { id_sala: id_sala, id_usuario: id_usuario },
-            //     success: function() {
-            //         window.location.href = '../index.php';
-            //     }
-            // });
-            
-            // Para demostración, redirigimos directamente
-            window.location.href = '../index.php';
-        }
+
+        setInterval(actualizarJugadores, 1000); // Actualizar cada segundo
+        setInterval(verificarListos, 1000); // Verificar listos cada segundo
     </script>
 </body>
 </html>

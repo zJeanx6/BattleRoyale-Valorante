@@ -1,6 +1,24 @@
 <?php
 require_once('../header.php');
-$estadisticas = obtenerEstadisticasTotales($id_usuario);
+$id_jugador = $usuario['doc'];
+
+$estadisticas = $con->query("SELECT id_jugador,
+        SUM(CASE WHEN id_tipo_evento IN (1, 2) THEN puntos ELSE 0 END) AS total_puntos,
+        COUNT(CASE WHEN id_tipo_evento = 2 THEN 1 END) AS total_kills,
+        COUNT(DISTINCT id_sala) AS total_salas_jugadas
+
+    FROM partidas_eventos
+    WHERE id_jugador = $id_jugador
+    GROUP BY id_jugador;")->fetch(PDO::FETCH_ASSOC);
+
+// Si no hay estadísticas, inicializar con ceros
+if (!$estadisticas) {
+    $estadisticas = [
+        'total_puntos' => 0,
+        'total_kills' => 0,
+        'total_salas_jugadas' => 0
+    ];
+}
 ?>
 
 <head>
@@ -192,17 +210,22 @@ $estadisticas = obtenerEstadisticasTotales($id_usuario);
                 <div class="col-md-4 text-center">
                     <img src="../<?php echo $avatar['img']; ?>" alt="Avatar" class="avatar-img">
                     <h1 class="player-name"><?php echo $usuario['nom_usu']; ?></h1>
-                    <div class="level-badge">Nivel: <?php echo $nivel['nom_nivel']; ?></div>
                 </div>
                 <div class="col-md-8">
                     <div class="stats-card">
                         <h3 class="stats-title">Estadísticas Principales</h3>
                         <div class="row">
                             <div class="col-4">
-                                <p>Puntos Totales: <?php echo $estadisticas['puntos']; ?></p>
+                                <p>Puntos: <?php echo $estadisticas['total_puntos']; ?></p>
                             </div>
                             <div class="col-4">
-                                <p>Muertes Totales: <?php echo $estadisticas['muertes']; ?></p>
+                                <p>Kills: <?php echo $estadisticas['total_kills']; ?></p>
+                            </div>
+                            <div class="col-4">
+                                <p>Partidas: <?php echo $estadisticas['total_salas_jugadas']; ?></p>
+                            </div>
+                            <div class="col-4">
+                                <p>Nivel: <?php echo $nivel['nom_nivel']; ?></p>
                             </div>
                         </div>
                     </div>

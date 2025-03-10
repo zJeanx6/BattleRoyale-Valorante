@@ -1,10 +1,15 @@
 <?php
+define('DB_HOST', 'localhost');
+define('DB_USER', 'root');
+define('DB_PASS', '');
+define('DB_NAME', 'battle_royale');
+
 class Database {
     
-    private $db_host = 'localhost';
-    private $db_user = 'root';
-    private $db_pass = '';
-    private $db_name = 'battle_royale';
+    private $db_host = DB_HOST;
+    private $db_user = DB_USER;
+    private $db_pass = DB_PASS;
+    private $db_name = DB_NAME;
     private $charset = 'utf8';
     
     function conectar() {

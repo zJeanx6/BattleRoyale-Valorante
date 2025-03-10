@@ -63,16 +63,4 @@ function insertarArmasJugador($id_usuario, $id_arma) {
     return "INSERT INTO jugadores_armas (id_jugador, id_arma) VALUES (?, ?)";
 }
 
-function obtenerEstadisticasTotales($id_usuario) {
-    return "SELECT 
-            u.nom_usu, 
-            COALESCE(SUM(CASE WHEN pe.id_tipo_evento IN (1, 2) THEN pe.puntos ELSE 0 END), 0) AS puntos,
-            COALESCE(SUM(CASE WHEN pe.id_tipo_evento = 2 THEN 1 ELSE 0 END), 0) AS muertes
-        FROM partidas_eventos pe
-        INNER JOIN usuarios u ON pe.id_jugador = u.doc
-        WHERE u.doc = ?
-        GROUP BY u.nom_usu
-    ";
-}
-
 ?>

@@ -141,9 +141,11 @@ CREATE TABLE partidas_eventos (
   id_tipo_evento INT NOT NULL,
   puntos INT NOT NULL,
   timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  id_sala INT NOT NULL,
   FOREIGN KEY (id_jugador) REFERENCES usuarios(doc),
   FOREIGN KEY (id_jugador_sala) REFERENCES jugadores_salas(id),
-  FOREIGN KEY (id_tipo_evento) REFERENCES tipos_eventos(id_tip_evento)
+  FOREIGN KEY (id_tipo_evento) REFERENCES tipos_eventos(id_tip_evento),
+  FOREIGN KEY (id_sala) REFERENCES salas(id_sala)
 );
 
 CREATE TABLE usuarios_mundos (

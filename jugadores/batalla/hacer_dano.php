@@ -28,14 +28,14 @@ try {
         $con->prepare("UPDATE jugadores_salas SET vida = ? WHERE id_jugador = ? AND id_sala = ?")->execute([$nuevaVida, $id_jugador, $id_sala]);
 
         // Registrar el evento de disparo
-        $con->prepare("INSERT INTO partidas_eventos (id_jugador, id_jugador_sala, id_tipo_evento, puntos) VALUES (?, ?, 1, ?)")->execute([$id_atacante, $id_jugador_sala, $dano]);
+        $con->prepare("INSERT INTO partidas_eventos (id_jugador, id_jugador_sala, id_tipo_evento, puntos, id_sala) VALUES (?, ?, 1, ?, ?)")->execute([$id_atacante, $id_jugador_sala, $dano, $id_sala]);
 
         if ($nuevaVida <= 0) {
             // Registrar el evento de muerte (kill)
-            $con->prepare("INSERT INTO partidas_eventos (id_jugador, id_jugador_sala, id_tipo_evento, puntos) VALUES (?, ?, 2, 40)")->execute([$id_atacante, $id_jugador_sala]);
+            $con->prepare("INSERT INTO partidas_eventos (id_jugador, id_jugador_sala, id_tipo_evento, puntos, id_sala) VALUES (?, ?, 2, 40, ?)")->execute([$id_atacante, $id_jugador_sala, $id_sala]);
 
             // Registrar el evento de muerte (me mataron)
-            $con->prepare("INSERT INTO partidas_eventos (id_jugador, id_jugador_sala, id_tipo_evento, puntos) VALUES (?, ?, 3, 0)")->execute([$id_jugador, $id_jugador_sala]);
+            $con->prepare("INSERT INTO partidas_eventos (id_jugador, id_jugador_sala, id_tipo_evento, puntos, id_sala) VALUES (?, ?, 3, 0, ?)")->execute([$id_jugador, $id_jugador_sala, $id_sala]);
         }
 
         // Verificar si solo queda un jugador vivo

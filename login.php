@@ -126,8 +126,8 @@
             <h2 class="text-center mb-4">Inicio De Sesión</h2>
             <form action="include/loginRedirec.php" method="post" enctype="multipart/form-data">
                 <div class="mb-3">
-                    <label for="email" class="form-label">Email:</label>
-                    <input class="form-control" type="email" name="email" id="email" placeholder="Ingrese su Email" required>
+                    <label for="username" class="form-label">Nombre de Usuario:</label>
+                    <input class="form-control" type="text" name="username" id="username" placeholder="Ingrese su Nombre de Usuario" required>
                 </div>
                 <div class="mb-3">
                     <label for="pass" class="form-label">Contraseña:</label>
