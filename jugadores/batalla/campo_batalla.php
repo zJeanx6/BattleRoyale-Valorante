@@ -177,13 +177,28 @@ $con->prepare("UPDATE salas SET id_estado_sala = 5 WHERE id_sala = ?")->execute(
             <?php endforeach; ?>
         </div>
     </div>
+
+    <!-- Nombre del jugador actual -->
     <div class="hud">
-        <div id="hud-vida">Vida: <span id="vida"><?php echo isset($jugadores[0]) ? $jugadores[0]['vida'] : 100; ?></span> HP</div>
-        <div id="hud-armas">Armas:</div>
+        <div id="hud-vida">Yo : <?php echo ($usuario['nom_usu']); ?></div>
+        <div id="hud-vida">Vida : <span id="vida"><?php echo isset($jugadores[0]) ? $jugadores[0]['vida'] : 100; ?></span> HP</div>
+        <div id="hud-armas">Armas :
         <?php foreach ($armas as $arma): ?>
             <img src="../<?php echo htmlspecialchars($arma['img']); ?>" alt="<?php echo htmlspecialchars($arma['nom_arma']); ?>" class="arma" id="arma-<?php echo $arma['id_arma']; ?>" data-dano="<?php echo $arma['dano']; ?>">
         <?php endforeach; ?>
     </div>
+
+    <!-- Botón para mostrar/ocultar el chat -->
+    <button id="toggle-chat" class="btn btn-secondary" style="position: fixed; bottom: 10px; right: 10px; z-index: 1000;">
+        <i class="fas fa-history"></i>
+    </button>
+
+    <!-- Chat de eventos -->
+    <div class="chat-eventos" id="chat-eventos" style="position: fixed; bottom: 60px; right: 10px; width: 300px; height: 200px; overflow-y: auto; background-color: rgba(0, 0, 0, 0.7); color: white; padding: 10px; border-radius: 10px; display: none;">
+        <h5>Eventos de la partida</h5>
+        <ul id="lista-eventos" style="list-style: none; padding: 0; margin: 0;"></ul>
+    </div>
+
     <div class="contador" id="contador"></div>
     <div class="estadisticas-modal" id="estadisticas-modal">
         <table>
@@ -205,6 +220,7 @@ $con->prepare("UPDATE salas SET id_estado_sala = 5 WHERE id_sala = ?")->execute(
         var intervalo;
         var danoArmaSeleccionada = 0;
         var partidaTerminada = false;
+        var idArmaSeleccionada = null; // Variable para almacenar el id del arma seleccionada
 
         function actualizarVida() {
             $.ajax({
@@ -224,20 +240,27 @@ $con->prepare("UPDATE salas SET id_estado_sala = 5 WHERE id_sala = ?")->execute(
         }
 
         function hacerDano(idJugador) {
-            if (vida > 0) {
+            if (vida > 0 && idArmaSeleccionada !== null) {
                 $.ajax({
                     url: 'hacer_dano.php',
                     type: 'POST',
-                    data: { id_sala: <?php echo $id_sala; ?>, id_jugador: idJugador, dano: danoArmaSeleccionada, atacante: <?php echo $id_usuario; ?> },
+                    data: { 
+                        id_sala: <?php echo $id_sala; ?>, 
+                        id_jugador: idJugador, 
+                        dano: danoArmaSeleccionada, 
+                        atacante: <?php echo $id_usuario; ?>, 
+                        id_arma: idArmaSeleccionada // Enviar el id del arma seleccionada
+                    },
                     success: function(nuevaVida) {
                         if (nuevaVida <= 0) {
-                            alert('Has matado a ' + $('#jugador-' + idJugador + ' .jugador-nombre').text());
                             $('#jugador-' + idJugador).addClass('jugador-muerto');
                             $('#jugador-' + idJugador + ' .avatar').css('pointer-events', 'none');
                         }
                         $('#vida-' + idJugador).text(nuevaVida);
                     }
                 });
+            } else {
+                alert('Selecciona un arma antes de atacar.');
             }
         }
 
@@ -331,6 +354,29 @@ $con->prepare("UPDATE salas SET id_estado_sala = 5 WHERE id_sala = ?")->execute(
             });
         }
 
+        function actualizarEventos() {
+            $.ajax({
+                url: 'obtener_eventos.php',
+                type: 'POST',
+                data: { id_sala: <?php echo $id_sala; ?> },
+                success: function(data) {
+                    var eventos = JSON.parse(data);
+                    var listaEventos = $('#lista-eventos');
+                    listaEventos.empty();
+                    eventos.forEach(function(evento) {
+                        listaEventos.append('<li>' + evento.descripcion + '</li>');
+                    });
+                    $('#chat-eventos').scrollTop($('#chat-eventos')[0].scrollHeight); // Desplazar al final
+                }
+            });
+        }
+
+        // Mostrar/ocultar el chat al hacer clic en el botón
+        document.getElementById('toggle-chat').addEventListener('click', function() {
+            const chat = document.getElementById('chat-eventos');
+            chat.style.display = chat.style.display === 'none' ? 'block' : 'none';
+        });
+
         $(document).ready(function() {
             $('.avatar').click(function() {
                 var idJugador = $(this).parent().attr('id').split('-')[1];
@@ -341,11 +387,13 @@ $con->prepare("UPDATE salas SET id_estado_sala = 5 WHERE id_sala = ?")->execute(
                 $('.arma').removeClass('arma-seleccionada');
                 $(this).addClass('arma-seleccionada');
                 danoArmaSeleccionada = $(this).data('dano');
+                idArmaSeleccionada = $(this).attr('id').split('-')[1]; // Obtener el id del arma seleccionada
             });
 
             setInterval(actualizarVida, 1000); // Actualizar vida cada segundo
             setInterval(actualizarJugadores, 1000); // Actualizar jugadores cada segundo
             setInterval(actualizarJugadoresVivos, 1000); // Verificar jugadores vivos cada segundo
+            setInterval(actualizarEventos, 1000); // Actualizar eventos cada segundo
             iniciarContador();
 
             window.onbeforeunload = function() {

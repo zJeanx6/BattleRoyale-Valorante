@@ -5,6 +5,7 @@ $id_jugador = $usuario['doc'];
 $estadisticas = $con->query("SELECT id_jugador,
         SUM(CASE WHEN id_tipo_evento IN (1, 2) THEN puntos ELSE 0 END) AS total_puntos,
         COUNT(CASE WHEN id_tipo_evento = 2 THEN 1 END) AS total_kills,
+        COUNT(CASE WHEN id_tipo_evento = 4 THEN 1 END) AS disparos_cabeza,
         COUNT(DISTINCT id_sala) AS total_salas_jugadas
 
     FROM partidas_eventos
@@ -16,6 +17,7 @@ if (!$estadisticas) {
     $estadisticas = [
         'total_puntos' => 0,
         'total_kills' => 0,
+        'disparos_cabeza' => 0,
         'total_salas_jugadas' => 0
     ];
 }
@@ -220,6 +222,9 @@ if (!$estadisticas) {
                             </div>
                             <div class="col-4">
                                 <p>Kills: <?php echo $estadisticas['total_kills']; ?></p>
+                            </div>
+                            <div class="col-4">
+                                <p>Headshots: <?php echo $estadisticas['disparos_cabeza']; ?></p>
                             </div>
                             <div class="col-4">
                                 <p>Partidas: <?php echo $estadisticas['total_salas_jugadas']; ?></p>

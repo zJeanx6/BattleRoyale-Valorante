@@ -1,5 +1,6 @@
 <?php
 require_once('config/db_config.php');
+require_once('send_email.php');
 $conex = new Database;
 $con = $conex->conectar();
 session_start();
@@ -42,7 +43,14 @@ if (isset($_POST['enviar'])) {
             }
 
             $con->commit();
-            echo '<script>alert("Usuario registrado exitosamente")</script>';
+
+            // Enviar correo de notificación de registro
+            $subject = "Registro Exitoso";
+            $body = "Hola $nom_usu, gracias por registrarte en nuestra aplicación. Tu cuenta está pendiente de activación.
+            ";
+            sendEmail($email, $subject, $body);
+
+            echo '<script>alert("Registro exitoso, Te hemos enviado un correo electronico con más informacion...")</script>';
             echo '<script> window.location= "register_user.php" </script>';
         }
     }
@@ -178,7 +186,9 @@ if (isset($_POST['enviar'])) {
                 <div class="mb-3">
                     <label for="nom_usu" class="form-label">Nombre de Usuario:</label>
                     <input type="text" class="form-control" name="nom_usu" id="nom_usu" placeholder="Ingrese su nombre de usuario">
-                    <div class="invalid-feedback">El nombre de usuario debe tener entre 4 y 20 caracteres.</div>
+                    <div class="invalid-feedback">El nombre de usuario debe tener entre 4 y 20 caracteres. 
+                    Y solo se adminten letras y numeros, mayúsculas y minúsculas.
+                    </div>
                 </div>
                 <div class="mb-3">
                     <label for="email" class="form-label">Email:</label>
@@ -188,7 +198,9 @@ if (isset($_POST['enviar'])) {
                 <div class="mb-3">
                     <label for="contra" class="form-label">Contraseña:</label>
                     <input type="password" class="form-control" name="contra" id="contra" placeholder="Ingrese su contraseña">
-                    <div class="invalid-feedback">La contraseña debe tener entre 8 y 12 caracteres.</div>
+                    <div class="invalid-feedback">La contraseña debe tener entre 8 y 12 caracteres.
+                        Y solo se adminten letras y numeros, mayúsculas y minúsculas.
+                    </div>
                 </div>
                 <div class="mb-3">
                     <label for="contra2" class="form-label">Confirmar Contraseña:</label>

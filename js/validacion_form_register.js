@@ -1,8 +1,8 @@
 const form = document.getElementById('form__registerUser');
 const inputs = document.querySelectorAll('#form__registerUser input');
 const expression = {
-    nom_usu: /^[a-zA-Z0-9]{4,20}$/, // Para el nombre de usuario
-    contra: /^[a-zA-Z0-9]{8,12}$/, // Para la contraseña
+    nom_usu: /^[a-zA-ZÀ-ÿ\s]{1,20}$/, // Para el nombre de usuario
+    contra: /^[a-zA-Z0-9]{8,12}$/, //Para la contraseña
     email: /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/ // Para el email
 };
 
